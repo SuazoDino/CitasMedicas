@@ -1,14 +1,22 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController; // 👈 OJO: Api, no Auth
 
-Route::post('/auth/login', function (Request $r) {
-    $cred = $r->validate(['email'=>'required|email','password'=>'required']);
-    if (!$token = auth('api')->attempt($cred)) {
-        return response()->json(['message'=>'Unauthorized'], 401);
-    }
-    return response()->json(['token'=>$token]);
+// 🔎 Diagnóstico: ping simple para confirmar que api.php se carga
+Route::get('/_ping', fn() => response()->json(['ok' => true, 'ts' => now()]));
+
+// Público
+Route::prefix('auth')->group(function () {
+    Route::post('register/paciente', [AuthController::class, 'registerPaciente']);
+    Route::post('register/medico',   [AuthController::class, 'registerMedico']);
+    Route::post('login',             [AuthController::class, 'login']);
 });
 
-Route::middleware('auth:api')->get('/auth/me', fn() => auth('api')->user());
+// Protegido
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('auth')->group(function () {
+        Route::get('me',     [AuthController::class, 'me']);
+        Route::post('logout',[AuthController::class, 'logout']);
+    });
+});

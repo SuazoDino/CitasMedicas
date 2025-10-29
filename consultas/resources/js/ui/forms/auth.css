@@ -1,0 +1,83 @@
+:root{
+  --auth-bg:#0f0a1a;
+  --auth-panel:rgba(19,15,33,.92);
+  --auth-border:rgba(255,255,255,.08);
+  --txt-weak:#b9c0d0;
+  --txt-strong:#eaf0ff;
+  --grad-1:#ff2a6d;
+  --grad-2:#9b4dff;
+  --grad-3:#00e0ff;
+}
+
+.auth-card{
+  width:min(520px,92vw);
+  margin:auto;
+  background: var(--auth-panel);
+  border:1px solid var(--auth-border);
+  border-radius:22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.55);
+  padding:22px;
+}
+.auth-header{
+  padding:8px 6px 2px 6px;
+}
+.auth-title{
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:.3px;
+  background:linear-gradient(135deg,#fff,var(--grad-3));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.auth-sub{ color:var(--txt-weak); margin-top:6px }
+
+.auth-tabs{
+  margin:18px 0 8px;
+  background: rgba(255,255,255,.06);
+  border:1px solid var(--auth-border);
+  border-radius:42px;
+  padding:6px;
+  display:flex; gap:6px;
+}
+.tab-btn{
+  flex:1; text-align:center; cursor:pointer; user-select:none;
+  padding:12px 14px; border-radius:32px; font-weight:800;
+  color:#c8d0e0; background:transparent; border:0;
+}
+.tab-btn.active{
+  color:#fff;
+  background:linear-gradient(135deg,var(--grad-1),var(--grad-2));
+  box-shadow:0 6px 26px rgba(255,42,109,.35);
+}
+
+.field{ margin:14px 0 }
+.label{ display:block; color:#d9e0f2; font-size:13px; margin:0 0 8px 6px }
+.input{
+  width:100%; padding:14px 16px; border-radius:14px;
+  border:1px solid var(--auth-border);
+  background:#0b0f18; color:#e7eeff; outline:none;
+  transition:border .15s, box-shadow .15s;
+}
+.input::placeholder{ color:#79839b }
+.input:focus{ border-color:#4fd1ff; box-shadow:0 0 0 3px rgba(79,209,255,.15) }
+
+.link{ color:#48d3ff; font-size:13px; text-decoration:none }
+.link:hover{ text-decoration:underline }
+
+.btn-xl{
+  width:100%; margin-top:14px;
+  padding:16px 18px; border-radius:999px; border:0; cursor:pointer;
+  color:#fff; font-weight:900; letter-spacing:.3px;
+  background:linear-gradient(135deg,var(--grad-1),var(--grad-2));
+  box-shadow:0 10px 40px rgba(255,42,109,.35);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.btn-xl:hover{ transform:translateY(-2px); box-shadow:0 14px 54px rgba(255,42,109,.5) }
+.btn-row{ display:flex; align-items:center; gap:12px; margin-top:16px }
+.hr{ flex:1; height:1px; background:var(--auth-border) }
+.hrtext{ color:#8ea3c7; font-size:12px }
+
+.sso-row{ display:flex; gap:14px; margin-top:16px }
+.sso{ flex:1; background:#121a2a; border:1px solid var(--auth-border); border-radius:14px;
+      padding:14px; display:flex; align-items:center; justify-content:center; color:#dbe7ff }
+.err{ color:#fecaca; font-size:13px; margin-top:8px }
