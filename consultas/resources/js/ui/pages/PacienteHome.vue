@@ -130,7 +130,7 @@ import axios from 'axios'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
-const userName = ref('Carlos Martínez')
+const userName = ref('')
 const menuOpen = ref(false)
 const router = useRouter()
 

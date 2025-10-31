@@ -7,7 +7,7 @@
 
     <div class="auth-tabs">
       <button class="tab-btn active">Iniciar Sesión</button>
-      <button class="tab-btn" @click="router.push('/register/paciente')">Registrarse</button>
+      <button class="tab-btn" @click="router.push({ name : 'register.paciente'})">Registrarse</button>
     </div>
 
     <div class="field">
@@ -43,13 +43,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '../../auth/api'          // tu axios con baseURL '/api'
 import './auth.css'
 import { auth } from '../../auth/store'
 
 const router = useRouter()
+const route = useRoute()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -68,23 +68,33 @@ async function doLogin () {
     // 2) Validar y persistir credenciales
     const token = data?.token
     if (!token) throw new Error('Sin token del servidor')
-    localStorage.setItem('token', token)
-    localStorage.setItem('roles', JSON.stringify(data?.roles || []))
+    auth.token = token
+    auth.roles = data?.roles ?? []
+    auth.name = data?.user?.name ?? ''
+    sessionStorage.removeItem('whoami_ok')
 
     // (opcional) Deja el header en tu instancia axios "api"
     if (!api.defaults.headers.common) api.defaults.headers.common = {}
     api.defaults.headers.common.Authorization = `Bearer ${token}`
 
     // 3) Redirección “a prueba de todo” SIN router
-    const roles = data?.roles || []
-    const dest = roles.includes('medico') ? '/medico' : '/me'
-    window.location.replace(dest)   // <- sin router, no hay forma de que “no abra”
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
+    if (redirect) {
+      router.replace(redirect)
+      return
+    }
+
+    if (auth.roles.includes('medico')) {
+      router.replace({ name: 'medico.home' })
+    } else if (auth.roles.includes('paciente')) {
+      router.replace({ name: 'paciente.home' })
+    } else {
+      router.replace({ name: 'login' })
+    }
   } catch (e) {
     error.value = e?.response?.data?.message || e?.message || 'No pudimos iniciar sesión.'
   } finally {
     loading.value = false
   }
 }
-
-
 </script>

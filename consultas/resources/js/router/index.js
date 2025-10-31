@@ -15,6 +15,7 @@ import ReservarCita  from '../ui/pages/ReservarCita.vue'
 const routes = [
   {
     path: '/',
+    name: 'landing',
     component: DesignShell, // aquí están tus 2 <RouterView/> (overlay + page-slot)
     children: [
       { path: 'login', component: Login },
@@ -23,9 +24,19 @@ const routes = [
       { path: 'me/reservar', component: ReservarCita, meta: { requiresAuth: true, role: 'paciente' } },
     ],
   },
-  { path: '/medico', component: MedicoHome,   meta: { requiresAuth: true, role: 'medico' } },
-  { path: '/me', redirect: '/me/paciente' },
-  { path: '/me/paciente', component: PacienteHome, meta: { requiresAuth: true, role: 'paciente' } },
+  {
+    path: '/medico',
+    name: 'medico.home',
+    component: MedicoHome,
+    meta: { requiresAuth: true, role: 'medico' }
+  },
+  { path: '/me', redirect: { name: 'paciente.home' } },
+  {
+    path: '/me/paciente',
+    name: 'paciente.home',
+    component: PacienteHome,
+    meta: { requiresAuth: true, role: 'paciente' }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 
@@ -50,7 +61,7 @@ const setAuthHeader = (token) => {
 
 const clearSession = () => {
   setAuthHeader(null)
-  ;['token','auth_token','access_token','user_name'].forEach(k => localStorage.removeItem(k))
+  ;['token', 'auth_token', 'access_token', 'user_name', 'roles'].forEach(k => localStorage.removeItem(k))
   sessionStorage.removeItem('token')
   sessionStorage.removeItem('whoami_ok')
 }
@@ -67,7 +78,7 @@ router.beforeEach(async (to, from, next) => {
   const token = getToken()
   if (!token) {
     clearSession()
-    return next({ path: '/login', query: { redirect: to.fullPath } })
+    return next({ name: 'login', query: { redirect: to.fullPath } })
   }
 
   setAuthHeader(token)
@@ -78,6 +89,8 @@ router.beforeEach(async (to, from, next) => {
       const { data } = await axios.get('/api/auth/me')
       const name  = data?.user?.name || data?.name
       if (name) localStorage.setItem('user_name', name)
+      const roles = data?.roles || data?.user?.roles
+      localStorage.setItem('roles', JSON.stringify(roles))
       sessionStorage.setItem('whoami_ok', '1')
 
       // (opcional) validar rol si la ruta lo pide
@@ -90,7 +103,7 @@ router.beforeEach(async (to, from, next) => {
         if (!hasRole) {
           // redirige al área “segura” según lo que tenga el usuario
           // ajusta a tu lógica si quieres algo distinto
-          return next(needRole === 'medico' ? '/me/paciente' : '/medico')
+          return next(needRole === 'medico' ? { name: 'paciente.home' } : { name: 'medico.home' })
         }
       }
     }
@@ -98,7 +111,7 @@ router.beforeEach(async (to, from, next) => {
   } catch (e) {
     if (e?.response?.status === 401) {
       clearSession()
-      return next({ path: '/login', query: { redirect: to.fullPath } })
+      return next({ name: 'login', query: { redirect: to.fullPath } })
     }
     // si el backend falla por otra razón, deja pasar pero con header puesto
     return next()

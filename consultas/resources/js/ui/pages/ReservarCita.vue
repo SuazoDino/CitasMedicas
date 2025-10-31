@@ -67,7 +67,7 @@
           <button class="btn-primary" :disabled="saving" @click="crearCita">
             {{ saving ? 'Guardando…' : 'Confirmar Reserva' }}
           </button>
-          <button class="btn-soft" @click="$router.push('/me/paciente')">Cancelar</button>
+          <button class="btn-soft" @click="$router.push({ name: 'paciente.home' })">Cancelar</button>
         </div>
         <p v-if="error" class="err">{{ error }}</p>
         <p v-if="ok" class="ok">¡Cita creada!</p>
@@ -78,8 +78,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../../auth/api'
 
+const router = useRouter()
 const especialidades = ref([])
 const especialidadId = ref('')
 const medicos = ref([])
@@ -99,10 +101,16 @@ const slotsDelDia = computed(()=>{
 })
 
 async function cargarEspecialidades(){
-  especialidades.value = await api.get('public/especialidades')
+  const { data } = await api.get('public/especialidades')
+  especialidades.value = Array.isArray(data) ? data : []
 }
 async function cargarMedicos(){
-  medicos.value = await api.get('public/medicos', { params:{ especialidad_id: especialidadId.value } })
+  if(!especialidadId.value){
+    medicos.value = []
+    return
+  }
+  const { data } = await api.get('public/medicos', { params:{ especialidad_id: especialidadId.value } })
+  medicos.value = Array.isArray(data) ? data : []
   medicoId.value = null; starts_at.value = null; slots.value = []
 }
 function selectMedico(id){ medicoId.value = id; cargarSlots() }
@@ -112,7 +120,8 @@ async function cargarSlots(){
   const desde = fecha.value
   const d2 = new Date(fecha.value); d2.setDate(d2.getDate()+6)
   const hasta = d2.toISOString().slice(0,10)
-  slots.value = await api.get(`public/medicos/${medicoId.value}/slots`, { params:{ desde, hasta } })
+  const { data } = await api.get(`public/medicos/${medicoId.value}/slots`, { params:{ desde, hasta } })
+  slots.value = Array.isArray(data) ? data : []
   starts_at.value = null
 }
 function pickSlot(s){ starts_at.value = s.start }
@@ -121,14 +130,18 @@ async function crearCita(){
   if(!medicoId.value || !starts_at.value) return
   saving.value = true; error.value = ''; ok.value = false
   try{
-    const ends_at = new Date(starts_at.value); ends_at.setMinutes(ends_at.getMinutes()+30)
-    const res = await api.post('paciente/citas', { medico_id: medicoId.value, starts_at: starts_at.value, ends_at: ends_at.toISOString() })
-    if(res?.ok){
+    const payload = {
+      medico_id: medicoId.value,
+      especialidad_id: especialidadId.value || null,
+      starts_at: starts_at.value,
+    }
+    const { data } = await api.post('paciente/citas', payload)
+    if (data?.id) {
       ok.value = true
       // Ir al panel del paciente
-      setTimeout(()=> { ok.value=false; window.location.assign('/me/paciente') }, 800)
+      setTimeout(()=> { ok.value=false; router.replace({ name: 'paciente.home' }) }, 800)
     }else{
-      error.value = res?.message || 'No se pudo crear la cita.'
+      error.value = data?.message || 'No se pudo crear la cita.'
     }
   }catch(e){
     error.value = e?.response?.data?.message || 'No se pudo crear la cita.'
