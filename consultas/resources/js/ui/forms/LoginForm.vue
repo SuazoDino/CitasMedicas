@@ -7,7 +7,7 @@
 
     <div class="auth-tabs">
       <button class="tab-btn active">Iniciar Sesión</button>
-      <button class="tab-btn" @click="router.push({ name : 'register.paciente'})">Registrarse</button>
+      <button class="tab-btn" type="button" @click="goRegister">Registrarse</button>
     </div>
 
     <div class="field">
@@ -21,7 +21,7 @@
     </div>
 
     <div style="text-align:right;margin-top:4px">
-      <a class="link" href="#">¿Olvidaste tu contraseña?</a>
+      <RouterLink class="link" :to="{ name: 'forgot-password' }">¿Olvidaste tu contraseña?</RouterLink>
     </div>
 
     <button class="btn-xl" :disabled="loading" @click="doLogin">
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../../auth/api'          // tu axios con baseURL '/api'
 import './auth.css'
@@ -50,10 +50,15 @@ import { auth } from '../../auth/store'
 
 const router = useRouter()
 const route = useRoute()
+const asMedico = computed(() => route.query.as === 'medico')
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+
+function goRegister () {
+  router.push({ name: asMedico.value ? 'register.medico' : 'register.paciente' })
+}
 
 async function doLogin () {
   loading.value = true

@@ -6,8 +6,13 @@
     </div>
 
     <div class="auth-tabs">
-      <button class="tab-btn" @click="router.push({ name: 'login' })">Iniciar Sesión</button>
-      <button class="tab-btn active">Registrarse</button>
+      <RouterLink
+        class="tab-btn"
+        :to="{ name: 'login', query: { as: 'paciente' } }"
+      >
+        Iniciar Sesión
+      </RouterLink>
+      <button class="tab-btn active" type="button">Registrarse</button>
     </div>
 
     <div class="field">

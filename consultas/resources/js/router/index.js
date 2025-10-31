@@ -10,6 +10,8 @@ import RegMedico     from '../ui/forms/RegisterMedicoForm.vue'
 import MedicoHome    from '../ui/pages/MedicoHome.vue'
 import PacienteHome  from '../ui/pages/PacienteHome.vue'
 import ReservarCita  from '../ui/pages/ReservarCita.vue'
+import ForgotPass    from '../ui/forms/ForgotPasswordForm.vue'
+import ResetPass     from '../ui/forms/ResetPasswordForm.vue'
 
 // --- rutas (mismas que enviaste) ---
 const routes = [
@@ -18,10 +20,18 @@ const routes = [
     name: 'landing',
     component: DesignShell, // aquí están tus 2 <RouterView/> (overlay + page-slot)
     children: [
-      { path: 'login', component: Login },
-      { path: 'register/paciente', component: RegPaciente },
-      { path: 'register/medico', component: RegMedico },
-      { path: 'me/reservar', component: ReservarCita, meta: { requiresAuth: true, role: 'paciente' } },
+      { path: '', redirect: { name: 'login' } },
+      { path: 'login', name: 'login', component: Login },
+      { path: 'forgot-password', name: 'forgot-password', component: ForgotPass },
+      { path: 'reset-password', name: 'reset-password', component: ResetPass },
+      { path: 'register/paciente', name: 'register.paciente', component: RegPaciente },
+      { path: 'register/medico', name: 'register.medico', component: RegMedico },
+      {
+        path: 'me/reservar',
+        name: 'paciente.reservar',
+        component: ReservarCita,
+        meta: { requiresAuth: true, role: 'paciente' }
+      },
     ],
   },
   {
@@ -95,14 +105,11 @@ router.beforeEach(async (to, from, next) => {
 
       // (opcional) validar rol si la ruta lo pide
       const needRole = to.meta?.role
-      if (needRole) {
-        const roles = data?.user?.roles || data?.roles || []
+      if (needRole) { 
         const hasRole = Array.isArray(roles)
           ? roles.some(r => (r?.name ?? r) === needRole)
           : (data?.user?.role === needRole)
         if (!hasRole) {
-          // redirige al área “segura” según lo que tenga el usuario
-          // ajusta a tu lógica si quieres algo distinto
           return next(needRole === 'medico' ? { name: 'paciente.home' } : { name: 'medico.home' })
         }
       }

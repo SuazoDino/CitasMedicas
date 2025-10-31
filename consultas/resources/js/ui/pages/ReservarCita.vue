@@ -139,7 +139,7 @@ async function crearCita(){
     if (data?.id) {
       ok.value = true
       // Ir al panel del paciente
-      setTimeout(()=> { ok.value=false; router.replace({ name: 'paciente.home' }) }, 800)
+      setTimeout(()=> { ok.value=false; router.replace({ name: 'paciente.home' }) }, 600)
     }else{
       error.value = data?.message || 'No se pudo crear la cita.'
     }
