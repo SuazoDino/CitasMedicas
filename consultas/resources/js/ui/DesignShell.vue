@@ -263,7 +263,13 @@ router.afterEach(() => { menuOpen.value = false })
 
 // --- ¿Se muestra como overlay/modal? (solo login/registro) ---
 const isOverlay = computed(() =>
-  ['/login','/register/paciente','/register/medico'].includes(route.path)
+[
+    '/login',
+    '/forgot-password',
+    '/reset-password',
+    '/register/paciente',
+    '/register/medico'
+  ].includes(route.path)
 )
 
 // --- ¿Página interna de la app? (/me o /medico) ---
@@ -329,8 +335,19 @@ async function logout () {
 }
 
 // --- Utilidades UI ---
-function go(path){ router.push(path) }
-function closeOverlay(){ router.push('/') }
+function go(path){
+  if (route.path === path && isOverlay.value) {
+    closeOverlay()
+    return
+  }
+  router.push(path)
+}
+
+function closeOverlay(){
+  if (route.path !== '/') {
+    router.push('/')
+  }
+}
 function scrollTo(sel){ document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }) }
 
 // --- Data "Nosotros" (igual a la tuya) ---

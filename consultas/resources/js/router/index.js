@@ -12,15 +12,15 @@ import PacienteHome  from '../ui/pages/PacienteHome.vue'
 import ReservarCita  from '../ui/pages/ReservarCita.vue'
 import ForgotPass    from '../ui/forms/ForgotPasswordForm.vue'
 import ResetPass     from '../ui/forms/ResetPasswordForm.vue'
+import LandingRoute  from '../ui/pages/LandingRoute.vue' 
 
 // --- rutas (mismas que enviaste) ---
 const routes = [
   {
     path: '/',
-    name: 'landing',
     component: DesignShell, // aquí están tus 2 <RouterView/> (overlay + page-slot)
     children: [
-      { path: '', redirect: { name: 'login' } },
+      { path: '', name :'landing', component : LandingRoute },
       { path: 'login', name: 'login', component: Login },
       { path: 'forgot-password', name: 'forgot-password', component: ForgotPass },
       { path: 'reset-password', name: 'reset-password', component: ResetPass },
