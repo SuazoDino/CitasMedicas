@@ -1,99 +1,156 @@
 # MediReserva · Plataforma de citas médicas
 
-MediReserva es una solución full‑stack para gestionar citas entre pacientes y médicos. El backend en Laravel expone una API autenticada con Sanctum, mientras que el frontend en Vue 3 ofrece una experiencia moderna para reservar horarios, revisar agendas y administrar el ciclo completo de una consulta médica.【F:routes/api.php†L1-L42】【F:resources/js/router/index.js†L1-L90】
+Una solución full-stack para coordinar pacientes y médicos mediante reservas en línea, confirmaciones en tiempo real y gestión integral de agendas clínicas. El backend en Laravel expone una API autenticada con Sanctum y el frontend en Vue 3 ofrece una experiencia moderna y responsiva para cada rol de usuario.
 
-## Funcionalidades destacadas
+---
 
-### Autenticación y gestión de cuentas
-- Registro diferenciado para pacientes y médicos, guardando atributos clínicos básicos y asignando el rol correspondiente de forma automática.【F:app/Http/Controllers/Api/AuthController.php†L16-L88】
-- Inicio y cierre de sesión basados en tokens personales de Laravel Sanctum, con almacenamiento local en el navegador y guardas de ruta para proteger secciones privadas.【F:app/Http/Controllers/Api/AuthController.php†L90-L118】【F:resources/js/router/index.js†L52-L111】
-- Recuperación de contraseña mediante envío de enlaces y restablecimiento validado por token temporal.【F:app/Http/Controllers/Api/PasswordResetController.php†L16-L74】
+## Tabla de contenido
+1. [Visión general](#visión-general)
+2. [Stack y arquitectura](#stack-y-arquitectura)
+3. [Funcionalidades clave](#funcionalidades-clave)
+4. [Estructura del proyecto](#estructura-del-proyecto)
+5. [Flujos destacados](#flujos-destacados)
+6. [Puesta en marcha](#puesta-en-marcha)
+7. [Variables de entorno](#variables-de-entorno)
+8. [API principal](#api-principal)
+9. [Modelo de datos](#modelo-de-datos)
+10. [Pruebas y mantenimiento](#pruebas-y-mantenimiento)
+11. [Hoja de ruta](#hoja-de-ruta)
 
-### Experiencia del paciente
-- Panel de control que lista próximas citas, métricas rápidas y recomendaciones, optimizado para pacientes autenticados.【F:resources/js/ui/pages/PacienteHome.vue†L1-L164】
-- Flujo guiado para reservar citas filtrando por especialidad, seleccionando médico disponible y eligiendo un horario libre en tiempo real.【F:resources/js/ui/pages/ReservarCita.vue†L1-L156】
-- Consulta de citas vigentes a través de la API y conversión de horarios al formato legible en el cliente.【F:app/Http/Controllers/Api/PacienteCitasController.php†L13-L66】
+---
 
-### Experiencia del médico
-- Tablero diario con resumen de citas, estado de verificación profesional y acciones rápidas para confirmar, completar o cancelar atenciones.【F:resources/js/ui/pages/MedicoHome.vue†L1-L210】
-- Endpoints protegidos que devuelven la agenda del día y permiten modificar el estado clínico de cada cita respetando la autoría del médico autenticado.【F:app/Http/Controllers/Api/MedicoCitasController.php†L13-L64】
+## Visión general
+MediReserva permite que pacientes encuentren especialistas disponibles, reserven horarios y gestionen su historial de consultas, mientras que los profesionales validan, confirman o reprograman su agenda diaria. La plataforma prioriza la seguridad de los datos médicos, la trazabilidad de cada cita y la comunicación ágil entre las partes.【F:routes/api.php†L1-L42】【F:resources/js/router/index.js†L1-L111】
 
-### Catálogo y disponibilidad
-- Catálogo público de especialidades y médicos asociados, con filtros por especialidad para acelerar la búsqueda.【F:app/Http/Controllers/Api/CatalogoController.php†L11-L34】
-- Generación de slots disponibles por médico considerando configuraciones horarias, duración mínima de turno y citas ya reservadas o pasadas.【F:app/Http/Controllers/Api/MedicoSlotsController.php†L13-L106】
+## Stack y arquitectura
+| Capa | Tecnología | Descripción |
+| --- | --- | --- |
+| Backend | Laravel 12 · PHP 8.2 | API REST protegida con Laravel Sanctum, migraciones Eloquent y colas opcionales en base de datos.【F:composer.json†L8-L47】 |
+| Frontend | Vue 3 · Vite 7 · Tailwind | SPA que consume la API mediante Axios, con rutas protegidas y componentes reutilizables para cada rol.【F:package.json†L1-L22】【F:resources/js/router/index.js†L1-L111】 |
+| Base de datos | SQLite (dev) / MySQL / PostgreSQL | Definida mediante migraciones; configurable desde `.env`.【F:.env.example†L1-L43】 |
+| Autenticación | Laravel Sanctum | Tokens personales almacenados en el navegador con guards dedicados para pacientes y médicos.【F:app/Http/Controllers/Api/AuthController.php†L16-L118】 |
 
-## Arquitectura y stack tecnológico
-- **Backend:** Laravel 12 (PHP 8.2) con Sanctum para autenticación por tokens y colas / sesiones respaldadas en base de datos.【F:composer.json†L8-L47】
-- **Frontend:** Vue 3 + Vue Router con Vite 7; Axios como cliente HTTP y Tailwind 4 en modo Vite para utilidades de estilo.【F:package.json†L1-L22】
-- **Base de datos:** configurada en modo SQLite por defecto para desarrollo, con opción de adaptar a MySQL/PostgreSQL cambiando el `.env`.【F:.env.example†L1-L43】
+> 💡 El repositorio incluye scripts para levantar simultáneamente API, frontend y workers durante el desarrollo (`composer run dev`).【F:composer.json†L35-L43】
 
-### Organización del código
-- `app/Http/Controllers/Api`: controladores REST para autenticación, catálogos, citas y slots disponibles.【F:app/Http/Controllers/Api/AuthController.php†L1-L118】
-- `app/Models`: modelos Eloquent y asociaciones entre usuarios, roles, pacientes, médicos y citas.【F:app/Models/Cita.php†L1-L30】
-- `routes/api.php`: definición centralizada de endpoints públicos y protegidos con middleware `auth:sanctum`.【F:routes/api.php†L1-L42】
-- `resources/js/ui`: componentes Vue para formularios, paneles y flujo de reserva con estilos dedicados.【F:resources/js/ui/pages/ReservarCita.vue†L1-L156】
+## Funcionalidades clave
+### Pacientes
+- Registro con datos clínicos básicos y preferencia de especialidad.【F:app/Http/Controllers/Api/AuthController.php†L16-L55】
+- Buscador de médicos por especialidad con agenda disponible en tiempo real.【F:resources/js/ui/pages/ReservarCita.vue†L1-L156】
+- Panel personal con próximas citas, recordatorios y métricas rápidas.【F:resources/js/ui/pages/PacienteHome.vue†L1-L164】
 
-## Modelo de datos
-Las migraciones incluyen entidades para gestionar usuarios, roles y el dominio médico:
-- `users`, `roles` y `user_role` para autenticación y autorización basada en roles.【F:database/migrations/2025_10_27_190400_create_users_table.php†L1-L36】【F:database/migrations/2025_10_27_190410_create_roles_table.php†L1-L27】【F:database/migrations/2025_10_27_190420_create_user_role_table.php†L1-L28】
-- `pacientes` y `medicos` almacenan información clínica y de verificación profesional; los médicos mantienen estado de validación y límites de agenda provisoria.【F:database/migrations/2025_10_27_200247_create_pacientes_table.php†L1-L37】【F:database/migrations/2025_10_27_200248_create_medicos_table.php†L1-L40】
-- `especialidades`, tabla pivote `medico_especialidad` y `medico_horarios` definen el catálogo y disponibilidad semanal de cada profesional.【F:database/migrations/2025_10_30_015728_create_especialidades_table.php†L1-L33】【F:database/migrations/2025_10_30_015948_create_medico_especialidad_table.php†L1-L33】【F:database/migrations/2025_10_30_020057_create_medico_horarios_table.php†L1-L40】
-- `citas` registra cada reserva con estado, motivo, autores y restricciones de unicidad por horario/médico.【F:database/migrations/2025_10_30_020155_create_citas_table.php†L1-L34】
-- `password_reset_tokens` y `personal_access_tokens` respaldan seguridad y recuperación de cuentas.【F:database/migrations/2025_10_31_170219_create_password_reset_tokens_table.php.php†L1-L29】【F:database/migrations/2025_10_27_190743_create_personal_access_tokens_table.php†L1-L38】
+### Médicos
+- Alta con validación de licencia y verificación profesional progresiva.【F:app/Http/Controllers/Api/AuthController.php†L57-L88】
+- Tablero diario para confirmar, completar o cancelar citas desde la web.【F:resources/js/ui/pages/MedicoHome.vue†L1-L210】
+- Endpoints protegidos para gestionar agenda según el médico autenticado.【F:app/Http/Controllers/Api/MedicoCitasController.php†L13-L64】
 
-## Endpoints principales
+### Funciones compartidas
+- Recuperación de contraseña con correos firmados por token temporal.【F:app/Http/Controllers/Api/PasswordResetController.php†L16-L74】
+- Middleware de Sanctum que restringe rutas a usuarios autenticados según su rol.【F:routes/api.php†L1-L42】
+- Catálogo público de especialidades y médicos para facilitar descubrimiento.【F:app/Http/Controllers/Api/CatalogoController.php†L11-L34】
+
+## Estructura del proyecto
+```
+consultas/
+├── app/
+│   ├── Http/Controllers/Api/    # Autenticación, catálogos, agenda, slots
+│   └── Models/                  # Entidades Eloquent (Cita, Paciente, Médico, etc.)
+├── database/migrations/         # Esquema de tablas y pivotes
+├── resources/js/
+│   ├── router/                  # Rutas protegidas por guardas
+│   └── ui/pages/                # Vistas de pacientes y médicos
+├── routes/api.php               # Definición de endpoints REST
+└── composer.json & package.json # Scripts útiles de backend y frontend
+```
+
+## Flujos destacados
+### Autenticación paso a paso
+1. Registro según rol (`/api/auth/register/paciente` o `/api/auth/register/medico`).【F:app/Http/Controllers/Api/AuthController.php†L16-L88】
+2. Inicio de sesión con email y contraseña → emisión de token Sanctum.【F:app/Http/Controllers/Api/AuthController.php†L90-L118】
+3. El frontend guarda el token y protege rutas mediante guards en Vue Router.【F:resources/js/router/index.js†L52-L111】
+4. Cierre de sesión invalida el token activo desde el backend.【F:app/Http/Controllers/Api/AuthController.php†L100-L118】
+
+### Reserva de cita
+1. Paciente consulta catálogo público de especialidades y médicos.【F:app/Http/Controllers/Api/CatalogoController.php†L11-L34】
+2. Solicita slots disponibles del médico elegido (`/api/public/medicos/{id}/slots`).【F:app/Http/Controllers/Api/MedicoSlotsController.php†L16-L106】
+3. Crea la reserva (`/api/paciente/citas`) validando conflictos de horario.【F:app/Http/Controllers/Api/PacienteCitasController.php†L46-L86】
+4. Médico confirma, cancela o completa la cita desde su tablero.【F:app/Http/Controllers/Api/MedicoCitasController.php†L35-L64】
+
+## Puesta en marcha
+### Requisitos
+- PHP 8.2+, Composer y extensiones habituales de Laravel (pdo, mbstring, tokenizer, openssl).
+- Node.js 18+ con npm para compilar assets de Vite.【F:package.json†L1-L22】
+- SQLite instalado (predeterminado) o credenciales para MySQL/PostgreSQL.【F:.env.example†L1-L43】
+
+### Configuración inicial (una sola vez)
+```bash
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan migrate
+npm install
+```
+
+### Servidores en desarrollo
+```bash
+# API de Laravel (http://localhost:8000)
+php artisan serve
+
+# Frontend de Vite con recarga en caliente (http://localhost:5173)
+npm run dev
+```
+
+> 🛠️ Para levantar API, colas y Vite de un solo golpe puedes usar `composer run dev`, que ejecuta `php artisan serve`, `php artisan queue:work` y `npm run dev` en paralelo.【F:composer.json†L35-L43】
+
+### Scripts útiles
+- `composer run setup`: automatiza instalación, generación de clave y migraciones desde cero.【F:composer.json†L21-L33】
+- `composer test`: ejecuta la suite de pruebas (`php artisan test`).【F:composer.json†L44-L47】
+- `npm run build`: compila assets para producción.【F:package.json†L5-L16】
+
+## Variables de entorno
+Ajusta estos valores en `.env` antes de desplegar:
+- `APP_URL`, `FRONTEND_URL`: URLs base para API y SPA.
+- `DB_CONNECTION`, `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`: conexión a la base de datos.
+- `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`: envío de correos reales para recuperación de contraseñas.【F:.env.example†L1-L57】
+
+## API principal
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | POST | `/api/auth/register/paciente` | Alta de paciente con datos personales opcionales.【F:app/Http/Controllers/Api/AuthController.php†L16-L55】 |
 | POST | `/api/auth/register/medico` | Alta de médico con información de licencia y verificación provisoria.【F:app/Http/Controllers/Api/AuthController.php†L57-L88】 |
 | POST | `/api/auth/login` | Autenticación y emisión de token personal.【F:app/Http/Controllers/Api/AuthController.php†L90-L118】 |
-| POST | `/api/auth/forgot-password` | Envío de enlace para restablecer contraseña.【F:routes/api.php†L11-L17】 |
-| POST | `/api/auth/reset-password` | Restablecimiento de contraseña mediante token válido.【F:app/Http/Controllers/Api/PasswordResetController.php†L44-L74】 |
+| POST | `/api/auth/forgot-password` | Envío de enlace de restablecimiento vía email.【F:routes/api.php†L11-L17】 |
+| POST | `/api/auth/reset-password` | Restablecimiento validado por token temporal.【F:app/Http/Controllers/Api/PasswordResetController.php†L44-L74】 |
 | GET | `/api/public/especialidades` | Listado de especialidades médicas disponibles.【F:app/Http/Controllers/Api/CatalogoController.php†L11-L18】 |
-| GET | `/api/public/medicos` | Catálogo de médicos, filtrable por especialidad.【F:app/Http/Controllers/Api/CatalogoController.php†L20-L34】 |
-| GET | `/api/public/medicos/{id}/slots` | Slots disponibles/ocupados de un médico para un rango de fechas.【F:app/Http/Controllers/Api/MedicoSlotsController.php†L16-L106】 |
-| GET | `/api/paciente/citas/proximas` | Citas futuras del paciente autenticado con formato amigable.【F:app/Http/Controllers/Api/PacienteCitasController.php†L13-L44】 |
-| POST | `/api/paciente/citas` | Reserva de cita validando horarios y conflictos de agenda.【F:app/Http/Controllers/Api/PacienteCitasController.php†L46-L86】 |
-| POST | `/api/paciente/citas/{id}/cancelar` | Cancelación de cita por parte del paciente dueño de la reserva.【F:app/Http/Controllers/Api/PacienteCitasController.php†L88-L107】 |
-| GET | `/api/medico/citas` | Agenda del día para el médico autenticado con filtro por fecha.【F:app/Http/Controllers/Api/MedicoCitasController.php†L13-L33】 |
-| POST | `/api/medico/citas/{id}/confirmar` | Confirmación de cita pendiente por parte del médico titular.【F:app/Http/Controllers/Api/MedicoCitasController.php†L35-L44】 |
-| POST | `/api/medico/citas/{id}/cancelar` | Cancelación de cita, registrando motivo y responsable.【F:app/Http/Controllers/Api/MedicoCitasController.php†L52-L64】 |
-| POST | `/api/medico/citas/{id}/completar` | Marcar una atención como completada una vez realizada.【F:app/Http/Controllers/Api/MedicoCitasController.php†L46-L51】 |
+| GET | `/api/public/medicos` | Catálogo de médicos filtrable por especialidad.【F:app/Http/Controllers/Api/CatalogoController.php†L20-L34】 |
+| GET | `/api/public/medicos/{id}/slots` | Horarios disponibles/ocupados de un médico para un rango de fechas.【F:app/Http/Controllers/Api/MedicoSlotsController.php†L16-L106】 |
+| GET | `/api/paciente/citas/proximas` | Próximas citas del paciente autenticado.【F:app/Http/Controllers/Api/PacienteCitasController.php†L13-L44】 |
+| POST | `/api/paciente/citas` | Reserva de cita validando conflictos de agenda.【F:app/Http/Controllers/Api/PacienteCitasController.php†L46-L86】 |
+| POST | `/api/paciente/citas/{id}/cancelar` | Cancelación realizada por el paciente dueño de la reserva.【F:app/Http/Controllers/Api/PacienteCitasController.php†L88-L107】 |
+| GET | `/api/medico/citas` | Agenda diaria filtrable por fecha para el médico autenticado.【F:app/Http/Controllers/Api/MedicoCitasController.php†L13-L33】 |
+| POST | `/api/medico/citas/{id}/confirmar` | Confirma una cita pendiente del médico logueado.【F:app/Http/Controllers/Api/MedicoCitasController.php†L35-L44】 |
+| POST | `/api/medico/citas/{id}/cancelar` | Cancela cita registrando motivo y responsable.【F:app/Http/Controllers/Api/MedicoCitasController.php†L52-L64】 |
+| POST | `/api/medico/citas/{id}/completar` | Marca la atención como completada tras realizarse.【F:app/Http/Controllers/Api/MedicoCitasController.php†L46-L51】 |
 
-## Puesta en marcha
-
-### Prerrequisitos
-- PHP 8.2+, Composer y extensiones típicas de Laravel (pdo, mbstring, tokenizer, openssl).
-- Node.js 18+ y npm para compilar los assets de Vite.【F:package.json†L1-L22】
-- SQLite (por defecto) o un servidor MySQL/PostgreSQL si prefieres otra base de datos.【F:.env.example†L1-L43】
-
-### Instalación rápida
-```bash
-cp .env.example .env        # Define variables y claves de la app
-composer install            # Dependencias PHP
-php artisan key:generate    # Clave de aplicación
-php artisan migrate         # Crea las tablas descritas arriba
-npm install                 # Dependencias del frontend
-npm run dev                 # Compila assets en modo desarrollo
-php artisan serve           # Levanta la API en http://localhost:8000
+## Modelo de datos
 ```
+Usuarios ─┬─< Pacientes
+          └─< Médicos ─┬─< MédicoEspecialidad >─ Especialidades
+                         └─< MédicoHorarios
 
-> 💡 También puedes ejecutar `composer run setup` para automatizar los pasos anteriores en un entorno limpio.【F:composer.json†L21-L33】
-
-### Entorno de desarrollo integrado
-Ejecuta `composer run dev` para iniciar servidor HTTP, listener de colas, tail de logs y Vite en paralelo (usa `concurrently`).【F:composer.json†L35-L43】
-
-### Variables de entorno relevantes
-- `APP_URL`, `FRONTEND_URL`: ajusta las URLs base si trabajas con dominios distintos.
-- `DB_CONNECTION` y credenciales para cambiar de SQLite a MySQL/PostgreSQL.
-- `MAIL_MAILER` si deseas enviar correos reales en recuperación de contraseña.【F:.env.example†L1-L57】
+Pacientes ─┬─< Citas >─ Médicos
+Citas incluyen estado (pendiente, confirmada, completada, cancelada), motivo y marcas de auditoría.
+```
+- Migraciones organizadas por fecha definen llaves foráneas, restricciones únicas y tablas pivote.【F:database/migrations/2025_10_27_190400_create_users_table.php†L1-L36】【F:database/migrations/2025_10_30_020155_create_citas_table.php†L1-L34】
+- Tokens personales y reinicios de contraseña mantienen la seguridad de las cuentas.【F:database/migrations/2025_10_27_190743_create_personal_access_tokens_table.php†L1-L38】【F:database/migrations/2025_10_31_170219_create_password_reset_tokens_table.php.php†L1-L29】
 
 ## Pruebas y mantenimiento
-- Ejecuta el suite de tests con `php artisan test` (alias `composer test`).【F:composer.json†L44-L47】
-- Usa `php artisan migrate:fresh --seed` para resetear el estado de la base de datos cuando cambies el esquema.
-- `npm run build` genera assets optimizados para producción.【F:package.json†L5-L16】
+- Ejecuta la suite con `php artisan test` para validar controladores y casos de uso críticos.【F:composer.json†L44-L47】
+- Usa `php artisan migrate:fresh --seed` para restablecer la base y cargar datos de prueba.
+- `npm run build` genera assets optimizados antes del despliegue.【F:package.json†L5-L16】
+- Supervisa logs con `php artisan tail` y tareas en segundo plano con `php artisan queue:work`.
 
-## Próximos pasos sugeridos
-- Habilitar gestión de horarios desde la UI del médico (actualmente los slots se cargan desde base de datos).【F:resources/js/ui/pages/MedicoHome.vue†L67-L89】【F:database/migrations/2025_10_30_020057_create_medico_horarios_table.php†L1-L40】
-- Completar lógica de favoritos/historial en el panel del paciente (ahora son datos de ejemplo).【F:resources/js/ui/pages/PacienteHome.vue†L101-L134】
-- Configurar un proveedor de correo real para que el flujo de recuperación de contraseña envíe emails en producción.【F:app/Http/Controllers/Api/PasswordResetController.php†L16-L41】
+## Hoja de ruta
+- Editor visual para disponibilidades del médico desde la interfaz web.【F:resources/js/ui/pages/MedicoHome.vue†L67-L134】
+- Historial completo y favoritos reales para pacientes (actualmente placeholders).【F:resources/js/ui/pages/PacienteHome.vue†L101-L164】
+- Integración con proveedor de correo transaccional (Mailgun, SES) para producción.【F:app/Http/Controllers/Api/PasswordResetController.php†L16-L41】
+- Notificaciones push o SMS para recordatorios de citas.
