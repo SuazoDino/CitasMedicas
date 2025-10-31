@@ -1,0 +1,32 @@
+:root{
+  --bg:#0a0118; --bg2:#1a0b2e; --text:#fff;
+  --muted:rgba(255,255,255,.65);
+  --glass:rgba(255,255,255,.05);
+  --glass-bd:rgba(255,255,255,.1);
+  --glass-bd-2:rgba(255,255,255,.12);
+  --acc1:#ff006e; --acc2:#8338ec; --acc3:#00f5ff;
+}
+html,body{height:100%}
+body{
+  margin:0; color:var(--text);
+  font-family:'Inter',system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  background:linear-gradient(135deg,var(--bg) 0%, #1a0b2e 50%, #16213e 100%);
+}
+
+/* Utilidades reutilizables (mismo look que tu landing) */
+.text-gradient{background:linear-gradient(135deg,#fff,var(--acc3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.btn{all:unset;cursor:pointer;display:inline-block;text-align:center;
+  padding:12px 18px;border-radius:14px;border:1px solid var(--glass-bd-2);
+  background:linear-gradient(135deg, color-mix(in srgb, var(--acc1) 20%, transparent),
+                                       color-mix(in srgb, var(--acc2) 20%, transparent));}
+.btn:hover{border-color:rgba(255,255,255,.28)}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;
+  background:linear-gradient(135deg,var(--acc1),var(--acc2));font-weight:700}
+.card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:16px;padding:16px}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+.row:last-child{border-bottom:0}
+.st{padding:6px 10px;border-radius:999px;border:1px solid var(--glass-bd-2);background:rgba(255,255,255,.04)}
+label{display:block;font-size:14px;margin:12px 0 6px;color:#cbd5e1}
+input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e2e8f0}

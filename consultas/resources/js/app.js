@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
+import App from './App.vue'
 import router from './router'
-import DesignShell from './ui/DesignShell.vue'
+import axios from 'axios'
 
-createApp(DesignShell).use(router).mount('#app')
+axios.defaults.withCredentials = true
+/* axios.get('/sanctum/csrf-cookie') */
+createApp(App).use(router).mount('#app')
 

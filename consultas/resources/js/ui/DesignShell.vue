@@ -7,7 +7,8 @@
   </div>
 
   <!-- NAVBAR -->
-  <nav class="navbar">
+  <nav class="navbar" v-if="!isAppNav">
+    
     <div class="nav-container">
       <div class="logo">⚡ MediReserva</div>
       <div class="nav-links">
@@ -24,9 +25,43 @@
       </div>
     </div>
   </nav>
+  <nav class="navbar appnav" v-else>
+    <div class="nav-container">
+      <div class="logo">⚡ MediReserva</div>
+
+      <div class="nav-right">
+        <div class="search-bar">
+          <span>🔍</span>
+          <input type="text" placeholder="Buscar médicos, especialidades…" />
+        </div>
+
+        <!-- User pill -->
+        <div class="appnav-user">
+          <button class="user-pill" @click.stop="menuOpen = !menuOpen">
+            <span class="user-avatar">👤</span>
+            <span class="user-info">
+              <strong>{{ userName }}</strong>
+              <small>{{ roleLabel }}</small>
+            </span>
+            <span class="caret">▾</span>
+          </button>
+
+          <!-- Dropdown -->
+          <div v-if="menuOpen" class="menu">
+            <a @click.prevent="$router.push('/me')">Mi panel</a>
+            <a @click.prevent="$router.push('/me/perfil')">Perfil</a>
+            <hr />
+            <a @click.prevent="logout">Salir</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
 
   <!-- HERO -->
-  <section class="hero" id="inicio">
+  <section class="hero" id="inicio" v-if="isLandingVisible">
     <div class="hero-content">
       <h1>El futuro de la <span class="accent">salud digital</span> está aquí</h1>
       <p>Conectamos pacientes con especialistas de clase mundial a través de tecnología de vanguardia. Tu bienestar, nuestra innovación.</p>
@@ -55,7 +90,7 @@
   </section>
 
   <!-- STATS -->
-  <section class="stats">
+  <section class="stats" v-if="isLandingVisible">
     <div class="stat-card"><div class="stat-number">500+</div><div class="stat-label">Médicos Especializados</div></div>
     <div class="stat-card"><div class="stat-number">50K+</div><div class="stat-label">Pacientes Satisfechos</div></div>
     <div class="stat-card"><div class="stat-number">30+</div><div class="stat-label">Especialidades Médicas</div></div>
@@ -63,7 +98,7 @@
   </section>
 
   <!-- SPECIALTIES -->
-  <section class="specialties" id="especialidades">
+  <section class="specialties" id="especialidades" v-if="isLandingVisible">
     <h2 class="section-title">Especialidades de Vanguardia</h2>
     <p class="section-subtitle">Profesionales de élite en cada área de la medicina moderna</p>
 
@@ -107,7 +142,7 @@
     </div>
   </section>
     <!-- ABOUT / NOSOTROS -->
-  <section class="about" id="nosotros">
+  <section class="about" id="nosotros" v-if="isLandingVisible">
     <h2 class="section-title">Nosotros</h2>
     <p class="section-subtitle">
       Una plataforma independiente que conecta pacientes con médicos de consultorio privado.  
@@ -144,7 +179,7 @@
     </div>
   </section>
   <!-- BOOKING SECTION (decorativa por ahora) -->
-  <section class="booking-section">
+  <section class="booking-section" v-if="isLandingVisible">
     <div class="booking-container">
       <h2>Agenda Tu Cita Hoy</h2>
       <button class="submit-btn" @click="go('/register/paciente')">Comenzar Registro</button>
@@ -171,7 +206,7 @@
   </section> -->
 
   <!-- FOOTER -->
-  <footer>
+  <footer v-if="isLandingVisible">
     <div class="footer-content">
       <div class="footer-brand">
         <h3>⚡ MediReserva</h3>
@@ -202,11 +237,103 @@
       </div>
     </div>
   </transition>
+
+  <!-- 👇 NUEVO: área para páginas normales (medico, me, etc.) -->
+  <section v-if="!isOverlay" class="page-slot">
+    <RouterView />
+  </section>
+
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
+import { onBeforeUnmount } from 'vue' // si no lo tenías
+
+const menuOpen = ref(false)
+const onAway = (e) => { if (!e.target.closest('.appnav-user')) menuOpen.value = false }
+onMounted(() => document.addEventListener('click', onAway))
+onBeforeUnmount(() => document.removeEventListener('click', onAway))
+
+// --- Router (debe ir primero para que no haya TDZ/undefined) ---
+const route = useRoute()
+const router = useRouter()
+router.afterEach(() => { menuOpen.value = false })
+
+// --- ¿Se muestra como overlay/modal? (solo login/registro) ---
+const isOverlay = computed(() =>
+  ['/login','/register/paciente','/register/medico'].includes(route.path)
+)
+
+// --- ¿Página interna de la app? (/me o /medico) ---
+const isAppPage = computed(() =>
+  route.path.startsWith('/me') || route.path.startsWith('/medico')
+)
+
+// --- Navbar compacta del panel (app nav) ---
+const isAppNav = computed(() => !isOverlay.value && isAppPage.value)
+
+// --- ¿Mostrar landing (hero, stats, specialties, about, footer)? ---
+const isLandingVisible = computed(() => !isOverlay.value && !isAppPage.value)
+
+// --- (opcional) etiqueta de rol para evitar warnings si la usas en el template ---
+const roleLabel = computed(() =>
+  route.path.startsWith('/medico') ? 'Médico'
+  : route.path.startsWith('/me')   ? 'Paciente'
+  : ''
+)
+
+// --- Sesión básica para el header ---
+const userName = ref('Mi cuenta')
+
+// helpers: toma un token si existe
+const getToken = () =>
+  localStorage.getItem('token') ||
+  localStorage.getItem('auth_token') ||
+  localStorage.getItem('access_token') ||
+  sessionStorage.getItem('token') ||
+  null;
+
+onMounted(async () => {
+  const t = getToken();
+
+  // Sin token => modo front-only: usa fallback y no llames al back
+  if (!t) {
+    const cached = localStorage.getItem('user_name');
+    if (cached) userName.value = cached;
+    return;
+  }
+
+  try {
+    const { data } = await axios.get('/api/auth/me', {
+      headers: { Authorization: `Bearer ${t}` }
+    });
+    if (data?.user?.name) userName.value = data.user.name;
+  } catch (err) {
+    // Si el token no sirve, no molestes en consola y limpia el header
+    if (err?.response?.status === 401) {
+      delete axios.defaults.headers.common.Authorization;
+      // opcional: limpia tokens inválidos
+      // localStorage.removeItem('token'); localStorage.removeItem('auth_token'); sessionStorage.removeItem('token');
+    }
+    // silenciar: nada de console.error aquí
+  }
+});
+
+
+async function logout () {
+  try { await axios.post('/api/auth/logout') } catch {}
+  localStorage.removeItem('token'); localStorage.removeItem('auth_token'); sessionStorage.removeItem('token')
+  router.push('/')
+}
+
+// --- Utilidades UI ---
+function go(path){ router.push(path) }
+function closeOverlay(){ router.push('/') }
+function scrollTo(sel){ document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }) }
+
+// --- Data "Nosotros" (igual a la tuya) ---
 const team = [
   {
     id: 1,
@@ -248,23 +375,11 @@ const team = [
 
 const values = [
   { icon:'🔒', title:'Privacidad primero', desc:'Encriptación y mínimos datos por defecto.' },
-  { icon:'⚡', title:'Rápido y simple', desc:'Reservas en menos de 60 segundos.' },
-  { icon:'🤝', title:'Independencia', desc:'Hecho para médicos de consultorio privado.' },
+  { icon:'⚡',  title:'Rápido y simple',     desc:'Reservas en menos de 60 segundos.' },
+  { icon:'🤝',  title:'Independencia',       desc:'Hecho para médicos de consultorio privado.' },
 ]
-
-
-const route = useRoute()
-const router = useRouter()
-
-const isOverlay = computed(()=> {
-  // antes incluía '/me'
-  return ['/login','/register/paciente','/register/medico'].includes(route.path)
-
-})
-function go(path){ router.push(path) }
-function closeOverlay(){ router.push('/') }
-function scrollTo(sel){ document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }) }
 </script>
+
 
 <style>
 /* ======== TU CSS (idéntico al que mandaste) con agregado del overlay ======== */
@@ -333,6 +448,18 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   position: relative;
   overflow: hidden;
 }
+.mr-menu{
+  position:absolute; right:24px; top:52px; min-width:180px;
+  background: rgba(20,20,35,.96); color:#e8f0ff;
+  border:1px solid rgba(255,255,255,.12); border-radius:14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); overflow:hidden; backdrop-filter: blur(10px);
+}
+.mr-menu a{
+  display:block; padding:10px 12px; text-decoration:none; color:inherit;
+}
+.mr-menu a:hover{ background: rgba(255,255,255,.06) }
+.mr-menu hr{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:4px 0 }
+
 .team-card::before{
   content:'';
   position:absolute; inset:0;
@@ -438,4 +565,196 @@ label{display:block;font-size:14px;margin:12px 0 6px;color:#cbd5e1}
 .btn.sec{background:#38bdf8;color:#062233}
 .btn.full{width:100%}
 .err{color:#fecaca;margin:8px 0 0 2px;font-size:13px}
+
+
+/* ==== PÁGINAS INTERNAS (slot) ==== */
+.page-slot{
+  max-width:1200px;
+  margin:0 auto;
+  padding:40px 24px;
+  color:#fff;
+}
+
+/* Títulos y textos dentro de páginas internas */
+.page-slot h1{font-size:32px;font-weight:900;margin-bottom:12px}
+.page-slot p{color:rgba(255,255,255,.70)}
+
+/* Listas: quitar viñetas y márgenes (adiós puntitos) */
+.page-slot ul{list-style:none;margin:0;padding:0}
+
+/* Tarjetas reutilizables (glass) si las usas */
+.page-slot .section{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
+  padding:24px;
+  margin-bottom:24px;
+}
+
+/* Filas de lista con separador */
+.page-slot .row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px dashed rgba(255,255,255,.08)
+}
+.page-slot .row:last-child{border-bottom:0}
+
+/* Badge / contador */
+.page-slot .badge{
+  display:inline-block;padding:6px 10px;border-radius:999px;
+  background:linear-gradient(135deg,#ff006e,#8338ec)
+}
+.page-slot ul, .page-slot ol { list-style: none !important; margin: 0; padding: 0; }
+.page-slot li { list-style: none !important; }
+.page-slot li::marker { content: '' !important; }  /* por si algún navegador insiste */
+.page-slot li:empty { display: none; }              /* evita puntitos de <li> vacíos */
+
+/* ==== UI comunes para páginas internas ==== */
+.page-slot h1{
+  font-size:36px;font-weight:900;margin-bottom:16px;
+  background:linear-gradient(135deg,#fff,#00f5ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+/* Tarjeta glass */
+.page-slot .card{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px; padding:24px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 10px 40px rgba(0,0,0,.35);
+  transition:transform .2s ease,border-color .2s ease;
+}
+.page-slot .card:hover{ transform:translateY(-3px); border-color:rgba(0,245,255,.35) }
+
+/* Lista bonita */
+.page-slot .list{ list-style:none; margin:0; padding:0 }
+.page-slot .list li{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px dashed rgba(255,255,255,.10)
+}
+.page-slot .list li:last-child{ border-bottom:0 }
+
+/* Botones */
+.page-slot .btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 18px; border-radius:999px; font-weight:700;
+  border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.08); color:#fff;
+  cursor:pointer; transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.page-slot .btn:hover{ transform:translateY(-2px); box-shadow:0 10px 40px rgba(0,0,0,.35); border-color:rgba(255,255,255,.25) }
+.page-slot .btn-primary{ background:linear-gradient(135deg,#ff006e,#8338ec); border-color:rgba(255,255,255,.15) }
+.page-slot .btn-ghost{ background:rgba(255,255,255,.08) }
+
+/* === PATIENT DASHBOARD (scoped por .page-slot) === */
+.page-slot .container{max-width:1400px;margin:40px auto;padding:0 40px}
+.page-slot .welcome-section{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:40px;margin-bottom:40px;display:flex;justify-content:space-between;align-items:center}
+.page-slot .welcome-content h1{font-size:36px;margin-bottom:10px;background:linear-gradient(135deg,#fff,#00f5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-slot .welcome-content p{color:rgba(255,255,255,.6);font-size:16px}
+.page-slot .btn-new-appointment{padding:16px 32px;background:linear-gradient(135deg,#ff006e,#8338ec);border:0;border-radius:50px;color:#fff;font-weight:700;cursor:pointer;transition:.3s;box-shadow:0 10px 40px rgba(255,0,110,.4);font-size:16px}
+.page-slot .btn-new-appointment:hover{transform:translateY(-3px);box-shadow:0 15px 50px rgba(255,0,110,.6)}
+
+.page-slot .quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:40px}
+.page-slot .stat-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);padding:30px;border-radius:20px;transition:.3s}
+.page-slot .stat-card:hover{background:rgba(255,255,255,.1);border-color:#00f5ff;transform:translateY(-5px)}
+.page-slot .stat-icon{font-size:36px;margin-bottom:15px}
+.page-slot .stat-value{font-size:32px;font-weight:900;background:linear-gradient(135deg,#ff006e,#00f5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:5px}
+.page-slot .stat-label{color:rgba(255,255,255,.6);font-size:14px}
+
+.page-slot .main-content{display:grid;grid-template-columns:2fr 1fr;gap:30px}
+.page-slot .section-title{font-size:24px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+
+.page-slot .appointments-section{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:30px}
+.page-slot .appointment-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:25px;margin-bottom:20px;transition:.3s}
+.page-slot .appointment-card:hover{background:rgba(255,255,255,.1);border-color:#8338ec;transform:translateX(5px)}
+.page-slot .appointment-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.page-slot .doctor-info{display:flex;gap:15px;align-items:center}
+.page-slot .doctor-avatar{width:60px;height:60px;background:linear-gradient(135deg,#ff006e,#8338ec);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px}
+.page-slot .doctor-details h3{font-size:18px;margin-bottom:5px}
+.page-slot .doctor-specialty{color:rgba(255,255,255,.6);font-size:14px}
+.page-slot .appointment-status{padding:8px 16px;border-radius:50px;font-size:12px;font-weight:600}
+.page-slot .status-confirmed{background:rgba(0,245,255,.2);color:#00f5ff}
+.page-slot .status-pending{background:rgba(255,177,0,.2);color:#ffb100}
+.page-slot .appointment-details{display:flex;gap:30px;margin-bottom:20px;padding:15px;background:rgba(255,255,255,.03);border-radius:12px}
+.page-slot .detail-item{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.8);font-size:14px}
+.page-slot .appointment-actions{display:flex;gap:10px}
+.page-slot .btn-action{flex:1;padding:10px 20px;border-radius:10px;border:0;font-weight:600;cursor:pointer;transition:.3s;font-size:14px}
+.page-slot .btn-cancel{background:rgba(255,0,110,.2);color:#ff006e;border:1px solid rgba(255,0,110,.3)}
+.page-slot .btn-cancel:hover{background:rgba(255,0,110,.3)}
+.page-slot .btn-reschedule{background:rgba(131,56,236,.2);color:#8338ec;border:1px solid rgba(131,56,236,.3)}
+.page-slot .btn-reschedule:hover{background:rgba(131,56,236,.3)}
+.page-slot .btn-video{background:linear-gradient(135deg,#ff006e,#8338ec);color:#fff;border:0}
+.page-slot .btn-video:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(255,0,110,.4)}
+
+.page-slot .sidebar{display:flex;flex-direction:column;gap:30px}
+.page-slot .card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:30px}
+.page-slot .recommended-doctors{display:flex;flex-direction:column;gap:15px}
+.page-slot .doctor-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;cursor:pointer;transition:.3s}
+.page-slot .doctor-card:hover{background:rgba(255,255,255,.1);border-color:#00f5ff;transform:translateY(-3px)}
+.page-slot .doctor-card-header{display:flex;gap:15px;margin-bottom:15px}
+.page-slot .doctor-card-avatar{width:50px;height:50px;background:linear-gradient(135deg,#ff006e,#8338ec);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+.page-slot .doctor-card-info h4{font-size:16px;margin-bottom:5px}
+.page-slot .doctor-card-specialty{color:rgba(255,255,255,.6);font-size:13px;margin-bottom:5px}
+.page-slot .rating{display:flex;align-items:center;gap:5px;color:#ffb100;font-size:13px}
+.page-slot .btn-book{width:100%;padding:12px;background:rgba(131,56,236,.2);border:1px solid rgba(131,56,236,.3);border-radius:10px;color:#8338ec;font-weight:600;cursor:pointer;transition:.3s}
+.page-slot .btn-book:hover{background:linear-gradient(135deg,#ff006e,#8338ec);color:#fff;border:0}
+
+.page-slot .health-tip{background:linear-gradient(135deg,rgba(255,0,110,.1),rgba(131,56,236,.1));border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px}
+.page-slot .tip-icon{font-size:32px;margin-bottom:15px}
+.page-slot .health-tip h4{font-size:16px;margin-bottom:10px}
+.page-slot .health-tip p{color:rgba(255,255,255,.7);font-size:14px;line-height:1.6}
+
+@media (max-width:1024px){
+  .page-slot .main-content{grid-template-columns:1fr}
+  .page-slot .quick-stats{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  .page-slot .welcome-section{flex-direction:column;text-align:center;gap:20px}
+  .page-slot .quick-stats{grid-template-columns:1fr}
+}
+
+/* ====== Header de app (panel interno) ====== */
+.appnav .nav-right{display:flex;align-items:center;gap:30px}
+.appnav .search-bar{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:10px 16px;display:flex;align-items:center;gap:10px;width:300px}
+.appnav .search-bar input{background:transparent;border:0;outline:0;color:#fff;width:100%}
+.appnav .search-bar input::placeholder{color:rgba(255,255,255,.5)}
+.appnav .user-menu{display:flex;align-items:center;gap:12px;padding:8px 12px;background:rgba(255,255,255,.06);border-radius:999px;border:1px solid rgba(255,255,255,.1)}
+.appnav .user-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ff006e,#8338ec)}
+.appnav .user-info h4{font-size:14px;font-weight:700}
+.appnav .user-info p{font-size:12px;color:rgba(255,255,255,.6)}
+.appnav .btn-logout{background:transparent;border:0;color:#fff;opacity:.75;cursor:pointer}
+.appnav .btn-logout:hover{opacity:1;text-decoration:underline}
+
+/* anclar el menú correctamente */
+.appnav .nav-container{ position:relative }  /* para anclar el dropdown */
+.appnav .nav-right{ display:flex; align-items:center; gap:16px }
+
+.appnav .appnav-user{ position:relative }
+.appnav .user-pill{
+  display:flex; align-items:center; gap:10px;
+  height:44px; padding:6px 14px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.16); border-radius:999px;
+  background:rgba(255,255,255,.06); color:#fff;
+}
+.appnav .user-avatar{
+  width:28px; height:28px; border-radius:50%;
+  display:grid; place-items:center; background:linear-gradient(135deg,#ff006e,#8338ec);
+  font-size:14px;
+}
+.appnav .user-info{ display:flex; flex-direction:column; line-height:1.05 }
+.appnav .user-info strong{ font-size:12px }
+.appnav .user-info small{ font-size:11px; color:rgba(255,255,255,.7) }
+.appnav .caret{ opacity:.8 }
+
+.appnav .menu{
+  position:absolute; top:56px; right:0; z-index:300;
+  min-width:200px; padding:6px 0;
+  background:rgba(20,20,35,.96); border:1px solid rgba(255,255,255,.12);
+  border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.45); backdrop-filter:blur(10px);
+}
+.appnav .menu a{
+  display:block; padding:10px 12px; text-decoration:none; color:#e8f0ff;
+}
+.appnav .menu a:hover{ background:rgba(255,255,255,.06) }
+.appnav .menu hr{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:4px 0 }
+
 </style>

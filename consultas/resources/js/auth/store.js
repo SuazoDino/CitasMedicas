@@ -1,4 +1,4 @@
-const KEY = 'auth_token'
+const KEY = 'token'
 export const auth = {
   get token(){ return localStorage.getItem(KEY) },
   set token(v){ v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY) },

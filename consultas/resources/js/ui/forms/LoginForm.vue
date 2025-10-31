@@ -47,6 +47,7 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import api from '../../auth/api'          // tu axios con baseURL '/api'
 import './auth.css'
+import { auth } from '../../auth/store'
 
 const router = useRouter()
 const email = ref('')
@@ -58,35 +59,32 @@ async function doLogin () {
   loading.value = true
   error.value = ''
   try {
-    // 1) Login (devuelve token y user)
+    // 1) Login
     const { data } = await api.post('/auth/login', {
       email: email.value,
       password: password.value
     })
 
-    // 2) Guarda token y configúralo en axios y en tu instancia api
+    // 2) Validar y persistir credenciales
     const token = data?.token
-    if (!token) throw new Error('No se recibió token')
-
+    if (!token) throw new Error('Sin token del servidor')
     localStorage.setItem('token', token)
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    if (api?.defaults) api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    localStorage.setItem('roles', JSON.stringify(data?.roles || []))
 
-    // 3) Consulta /me para obtener roles y decidir el destino
-    const { data: meRes } = await api.get('/auth/me')
-    const roles = meRes?.roles ?? []
+    // (opcional) Deja el header en tu instancia axios "api"
+    if (!api.defaults.headers.common) api.defaults.headers.common = {}
+    api.defaults.headers.common.Authorization = `Bearer ${token}`
 
-    if (roles.includes('medico')) {
-      router.push('/medico')
-    } else if (roles.includes('paciente')) {
-      router.push('/me')         // o tu página de paciente si ya la tienes
-    } else {
-      router.push('/')           // fallback seguro
-    }
+    // 3) Redirección “a prueba de todo” SIN router
+    const roles = data?.roles || []
+    const dest = roles.includes('medico') ? '/medico' : '/me'
+    window.location.replace(dest)   // <- sin router, no hay forma de que “no abra”
   } catch (e) {
-    error.value = e?.response?.data?.error || 'No pudimos iniciar sesión.'
+    error.value = e?.response?.data?.message || e?.message || 'No pudimos iniciar sesión.'
   } finally {
     loading.value = false
   }
 }
+
+
 </script>
