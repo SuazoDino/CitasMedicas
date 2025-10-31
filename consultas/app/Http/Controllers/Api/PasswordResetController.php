@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -20,8 +21,21 @@ class PasswordResetController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $status = Password::sendResetLink($credentials);
+        try {
+            $status = Password::sendResetLink($credentials);
 
+            if ($status !== Password::RESET_LINK_SENT) {
+                Log::notice('Password reset link request did not complete successfully.', [
+                    'email' => $credentials['email'],
+                    'status' => $status,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Password reset link request failed.', [
+                'email' => $credentials['email'],
+                'exception' => $e,
+            ]);
+        }
         return response()->json([
             'message' => __('Si el correo existe en nuestros registros, enviaremos un enlace para restablecer la contraseña.'),
         ]);
