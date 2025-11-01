@@ -13,6 +13,7 @@ import ReservarCita  from '../ui/pages/ReservarCita.vue'
 import ForgotPass    from '../ui/forms/ForgotPasswordForm.vue'
 import ResetPass     from '../ui/forms/ResetPasswordForm.vue'
 import LandingRoute  from '../ui/pages/LandingRoute.vue' 
+import MedicoHorarios from '../ui/pages/MedicoHorarios.vue'
 
 // --- rutas (mismas que enviaste) ---
 const routes = [
@@ -38,6 +39,12 @@ const routes = [
     path: '/medico',
     name: 'medico.home',
     component: MedicoHome,
+    meta: { requiresAuth: true, role: 'medico' }
+  },
+  {
+    path: '/medico/horarios',
+    name: 'medico.horarios',
+    component: MedicoHorarios,
     meta: { requiresAuth: true, role: 'medico' }
   },
   { path: '/me', redirect: { name: 'paciente.home' } },

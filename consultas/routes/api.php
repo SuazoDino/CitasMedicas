@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\PacienteCitasController;
 use App\Http\Controllers\Api\MedicoCitasController;
 use App\Http\Controllers\Api\MedicoSlotsController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\HorariosController;
 // Público
 Route::prefix('auth')->group(function () {
     Route::post('register/paciente', [AuthController::class, 'registerPaciente']);
@@ -40,6 +41,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('citas/{id}/confirmar', [MedicoCitasController::class, 'confirmar']);
         Route::post('citas/{id}/cancelar',  [MedicoCitasController::class, 'cancelar']);
         Route::post('citas/{id}/completar', [MedicoCitasController::class, 'completar']);
+        Route::get('horarios',             [MedicoHorariosController::class, 'index']);
+        Route::post('horarios',            [MedicoHorariosController::class, 'store']);
+        Route::put('horarios/{horario}',   [MedicoHorariosController::class, 'update']);
+        Route::patch('horarios/{horario}', [MedicoHorariosController::class, 'update']);
+        Route::delete('horarios/{horario}', [MedicoHorariosController::class, 'destroy']);
     });
 });
 

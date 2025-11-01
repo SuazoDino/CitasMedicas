@@ -77,9 +77,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../auth/api'
+import { userHorariosStore } from '../stores/horarios'
 
 const router = useRouter()
 const especialidades = ref([])
@@ -92,6 +93,7 @@ const starts_at = ref(null)
 const saving = ref(false)
 const error = ref('')
 const ok = ref(false)
+const horariosStore = userHorariosStore()
 
 function toTime(iso){ return new Date(iso).toTimeString().slice(0,5) }
 function toDate(iso){ return new Date(iso).toLocaleDateString() }
@@ -125,6 +127,15 @@ async function cargarSlots(){
   starts_at.value = null
 }
 function pickSlot(s){ starts_at.value = s.start }
+
+watch(
+  () => horariosStore.versionOf(medicoId.value || 0),
+  (version, previous) => {
+    if (!medicoId.value) return
+    if (typeof previous === 'undefined') return
+    if (version !== previous) cargarSlots()
+  }
+)
 
 async function crearCita(){
   if(!medicoId.value || !starts_at.value) return

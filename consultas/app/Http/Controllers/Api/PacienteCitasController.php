@@ -56,6 +56,9 @@ class PacienteCitasController extends Controller
                   ->where('hora_inicio','<=',$start->format('H:i:s'))
                   ->where('hora_fin','>',$start->format('H:i:s'))
                   ->first();
+        if (!$slot) {
+            return response()->json(['message'=>'El horario seleccionado no está disponible'], 422);
+        }
         $slotMin = $slot?->slot_min ?? 30;
         $end = (clone $start)->addMinutes($slotMin);
 
