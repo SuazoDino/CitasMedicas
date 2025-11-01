@@ -80,7 +80,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../auth/api'
-import { userHorariosStore } from '../stores/horarios'
+import { useHorariosStore } from '../stores/horarios'
 
 const router = useRouter()
 const especialidades = ref([])
@@ -93,7 +93,7 @@ const starts_at = ref(null)
 const saving = ref(false)
 const error = ref('')
 const ok = ref(false)
-const horariosStore = userHorariosStore()
+const horariosStore = useHorariosStore()
 
 function toTime(iso){ return new Date(iso).toTimeString().slice(0,5) }
 function toDate(iso){ return new Date(iso).toLocaleDateString() }

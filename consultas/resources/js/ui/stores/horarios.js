@@ -35,3 +35,8 @@ export function useHorariosStore () {
     versionOf,
   }
 }
+
+// Compatibilidad: algunos imports anteriores usaron el nombre mal escrito
+// `userHorariosStore`. Mantener un alias evita que la aplicación falle en
+// caliente hasta que todo el código sea actualizado.
+export const userHorariosStore = useHorariosStore

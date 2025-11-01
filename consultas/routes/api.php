@@ -6,8 +6,8 @@ use App\Http\Controllers\Api\CatalogoController;
 use App\Http\Controllers\Api\PacienteCitasController;
 use App\Http\Controllers\Api\MedicoCitasController;
 use App\Http\Controllers\Api\MedicoSlotsController;
+use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosController;
 use App\Http\Controllers\Api\PasswordResetController;
-use App\Http\Controllers\Api\HorariosController;
 // Público
 Route::prefix('auth')->group(function () {
     Route::post('register/paciente', [AuthController::class, 'registerPaciente']);
