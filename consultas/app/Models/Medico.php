@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Medico extends Model
@@ -13,4 +14,8 @@ class Medico extends Model
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
     public function citas(): HasMany { return $this->hasMany(Cita::class); }
+    public function seguidores(): BelongsToMany
+    {
+        return $this->belongsToMany(Paciente::class, 'paciente_favoritos')->withTimestamps();
+    }
 }

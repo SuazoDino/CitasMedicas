@@ -41,17 +41,48 @@
       <div class="welcome-section">
         <div class="welcome-content">
           <h1>¡Hola, {{ userName }}! 👋</h1>
-          <p>Tienes {{ citas.length }} citas próximas. Mantén tu salud al día.</p>
+          <p>
+            <span v-if="resumenLoading">Estamos preparando tu panel con las últimas métricas.</span>
+            <span v-else>Tienes {{ stats.proximas }} citas próximas. Mantén tu salud al día.</span>
+          </p>
         </div>
         <button class="btn-new-appointment" @click="$router.push('/me/reservar')">+ Nueva Cita</button>
       </div>
 
       <!-- QUICK STATS -->
       <div class="quick-stats">
-        <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value">{{ citas.length }}</div><div class="stat-label">Citas Próximas</div></div>
-        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value">{{ stats.completadas }}</div><div class="stat-label">Citas Completadas</div></div>
-        <div class="stat-card"><div class="stat-icon">👨‍⚕️</div><div class="stat-value">{{ stats.favoritos }}</div><div class="stat-label">Médicos Favoritos</div></div>
-        <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-value">{{ stats.historial }}</div><div class="stat-label">Historial Médico</div></div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-value">
+            <span v-if="resumenLoading || citasLoading" class="skeleton skeleton-number"></span>
+            <span v-else>{{ stats.proximas }}</span>
+          </div>
+          <div class="stat-label">Citas Próximas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">
+            <span v-if="resumenLoading" class="skeleton skeleton-number"></span>
+            <span v-else>{{ stats.completadas }}</span>
+          </div>
+          <div class="stat-label">Citas Completadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👨‍⚕️</div>
+          <div class="stat-value">
+            <span v-if="resumenLoading" class="skeleton skeleton-number"></span>
+            <span v-else>{{ stats.favoritos }}</span>
+          </div>
+          <div class="stat-label">Médicos Favoritos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📄</div>
+          <div class="stat-value">
+            <span v-if="resumenLoading" class="skeleton skeleton-number"></span>
+            <span v-else>{{ stats.historial }}</span>
+          </div>
+          <div class="stat-label">Historial Médico</div>
+        </div>
       </div>
 
       <!-- MAIN -->
@@ -60,12 +91,35 @@
         <div class="appointments-section">
           <div class="section-title">📅 Mis Próximas Citas</div>
 
-          <div v-if="!citas.length" class="appointment-card">
+          <div v-if="citasLoading" class="appointment-card skeleton-card">
+            <div class="appointment-header">
+              <div class="doctor-info">
+                <div class="doctor-avatar skeleton skeleton-avatar"></div>
+                <div class="doctor-details">
+                  <div class="skeleton skeleton-line"></div>
+                  <div class="skeleton skeleton-line small"></div>
+                </div>
+              </div>
+              <div class="appointment-status skeleton skeleton-badge"></div>
+            </div>
+            <div class="appointment-details">
+              <div class="detail-item"><span class="skeleton skeleton-line full"></span></div>
+              <div class="detail-item"><span class="skeleton skeleton-line full"></span></div>
+              <div class="detail-item"><span class="skeleton skeleton-line full"></span></div>
+            </div>
+            <div class="appointment-actions">
+              <span class="skeleton skeleton-button"></span>
+              <span class="skeleton skeleton-button"></span>
+              <span class="skeleton skeleton-button"></span>
+            </div>
+          </div>
+
+          <div v-else-if="!citas.length" class="appointment-card">
             <div class="doctor-details"><h3>Sin citas próximas</h3></div>
             <div class="appointment-details"><div class="detail-item">Programa tu próxima cita con “+ Nueva Cita”.</div></div>
           </div>
 
-          <div v-for="c in citas" :key="c.id" class="appointment-card">
+          <div v-else v-for="c in citas" :key="c.id" class="appointment-card">
             <div class="appointment-header">
               <div class="doctor-info">
                 <div class="doctor-avatar">👨‍⚕️</div>
@@ -97,7 +151,25 @@
           <div class="card">
             <div class="section-title">⭐ Recomendados para ti</div>
             <div class="recommended-doctors">
-              <div class="doctor-card" v-for="d in recomendados" :key="d.id">
+              <template v-if="resumenLoading">
+                <div class="doctor-card skeleton-card" v-for="i in 2" :key="`rec-skeleton-${i}`">
+                  <div class="doctor-card-header">
+                    <div class="doctor-card-avatar skeleton skeleton-avatar"></div>
+                    <div class="doctor-card-info">
+                      <div class="skeleton skeleton-line"></div>
+                      <div class="skeleton skeleton-line small"></div>
+                      <div class="skeleton skeleton-line smaller"></div>
+                    </div>
+                  </div>
+                  <div class="btn-book skeleton skeleton-button"></div>
+                </div>
+              </template>
+              <p v-else-if="resumenError" class="empty-state">No pudimos cargar recomendaciones. Inténtalo más tarde.</p>
+              <p v-else-if="!recomendados.length" class="empty-state">
+                No tenemos recomendaciones todavía. Completa una cita para personalizar este espacio.
+              </p>
+              <div v-else class="doctor-card" v-for="d in recomendados" :key="d.id">
+             
                 <div class="doctor-card-header">
                   <div class="doctor-card-avatar">👨‍⚕️</div>
                   <div class="doctor-card-info">
@@ -113,10 +185,30 @@
 
           <div class="card">
             <div class="section-title">💡 Tip de Salud</div>
-            <div class="health-tip">
-              <div class="tip-icon">💧</div>
-              <h4>Mantente Hidratado</h4>
-              <p>Bebe al menos 8 vasos de agua al día. La hidratación adecuada mejora tu energía, concentración y salud general.</p>
+            <div v-if="resumenLoading" class="health-tip skeleton-card">
+              <div class="tip-icon skeleton skeleton-avatar"></div>
+              <div class="tip-body">
+                <div class="skeleton skeleton-line"></div>
+                <div class="skeleton skeleton-line full"></div>
+                <div class="skeleton skeleton-line small"></div>
+              </div>
+            </div>
+            <div v-else-if="resumenError" class="health-tip empty-tip">
+              <div class="tip-icon">💡</div>
+              <p>No pudimos cargar tus recomendaciones de salud. Intenta refrescar más tarde.</p>
+            </div>
+            <div v-else-if="hasTips" class="health-tip">
+              <div class="tip-icon">💡</div>
+              <div class="tip-body">
+                <h4>{{ primaryTip }}</h4>
+                <ul v-if="extraTips.length">
+                  <li v-for="(tip, index) in extraTips" :key="`tip-${index}`">{{ tip }}</li>
+                </ul>
+              </div>
+            </div>
+            <div v-else class="health-tip empty-tip">
+              <div class="tip-icon">💡</div>
+              <p>Estamos recopilando información para ofrecerte recomendaciones personalizadas.</p>
             </div>
           </div>
         </div>
@@ -126,20 +218,110 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+import { ref, onMounted, onBeforeUnmount, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/services/api'
 
 const userName = ref('')
 const menuOpen = ref(false)
 const router = useRouter()
 
-function handleOutside(e){ if (!e.target.closest('.mr-dh')) menuOpen.value = false }
-onMounted(()=> document.addEventListener('click', handleOutside))
-onBeforeUnmount(()=> document.removeEventListener('click', handleOutside))
+const baseStats = Object.freeze({ proximas: 0, completadas: 0, favoritos: 0, historial: 0 })
+const resumen = reactive({
+  stats: { ...baseStats },
+  recomendados: [],
+  tips: []
+})
 
-async function logout () {
-  try { await api.post('/auth/logout') } catch {}
+const stats = computed(() => resumen.stats)
+const recomendados = computed(() => resumen.recomendados)
+const tipsList = computed(() => resumen.tips)
+const citas = ref([])
+
+const resumenLoading = ref(true)
+const citasLoading = ref(true)
+const resumenError = ref(false)
+
+const primaryTip = computed(() => tipsList.value[0] ?? null)
+const extraTips = computed(() => tipsList.value.slice(1))
+const hasTips = computed(() => tipsList.value.length > 0)
+
+function handleOutside(e) {
+  if (!e.target.closest('.mr-dh')) menuOpen.value = false
+}
+
+/* ---------- Cliente Axios central con Bearer automático ---------- */
+onMounted(() => {
+  document.addEventListener('click', handleOutside)
+  loadPerfil()
+  loadResumen()
+  loadCitas()
+})
+/* ----------------------------------------------------------------- */
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutside)
+})
+
+async function loadPerfil() {
+  try {
+    const me = await api.get('/auth/me')
+    if (me?.data?.user?.name) userName.value = me.data.user.name
+  } catch (error) {
+    // Ignora cuando no hay sesión
+  }
+}
+
+async function loadResumen() {
+  resumenLoading.value = true
+  resumenError.value = false
+  try {
+    const { data } = await api.get('/paciente/resumen')
+    const defaults = { ...baseStats }
+    resumen.stats = { ...defaults, ...(data?.stats ?? {}) }
+    resumen.recomendados = Array.isArray(data?.recomendados) ? data.recomendados : []
+    resumen.tips = Array.isArray(data?.tips) ? data.tips : []
+  } catch (error) {
+    if (error?.response?.status === 401) {
+      resumen.stats = { ...baseStats }
+      resumen.recomendados = []
+      resumen.tips = []
+    } else {
+      resumenError.value = true
+    }
+  } finally {
+    resumenLoading.value = false
+  }
+}
+
+async function loadCitas() {
+  citasLoading.value = true
+  try {
+    const { data } = await api.get('/paciente/citas/proximas')
+    const rows = Array.isArray(data) ? data : (data?.citas ?? [])
+    citas.value = rows
+    const current = resumen.stats ?? baseStats
+    resumen.stats = { ...current, proximas: rows.length }
+  } catch (error) {
+    if (error?.response?.status === 401) {
+      citas.value = []
+    } else {
+      citas.value = []
+      // si prefieres, redirige al login:
+      // router.push('/login')
+    }
+  } finally {
+  citasLoading.value = false
+  }
+}
+
+async function logout() {
+  try {
+    await api.post('/auth/logout')
+  } catch (error) {
+    // Ignora errores de red
+  }
   localStorage.removeItem('token')
   localStorage.removeItem('auth_token')
   localStorage.removeItem('access_token')
@@ -147,58 +329,19 @@ async function logout () {
   router.push('/')
 }
 
-/* ---------- Cliente Axios central con Bearer automático ---------- */
-const getToken = () =>
-  localStorage.getItem('token') ||
-  localStorage.getItem('auth_token') ||
-  localStorage.getItem('access_token') ||
-  sessionStorage.getItem('token') ||
-  null
-
-const api = axios.create({ baseURL: '/api', withCredentials: true })
-api.interceptors.request.use((cfg) => {
-  const t = getToken()
-  if (t) cfg.headers.Authorization = `Bearer ${t}`
-  return cfg
-})
-/* ----------------------------------------------------------------- */
-
-const stats = ref({ completadas: 0, favoritos: 0, historial: 0 })
-const recomendados = ref([
-  { id:1, nombre:'Dr. Roberto García', especialidad:'Neurología',   rating:'4.9', reviews:120 },
-  { id:2, nombre:'Dra. Ana Torres',    especialidad:'Dermatología', rating:'4.8', reviews:95  },
-  { id:3, nombre:'Dr. Diego Sánchez',  especialidad:'Traumatología',rating:'4.9', reviews:150 },
-])
-
-const statusClass = (s) => {
-  const v = (s||'').toLowerCase()
-  if (v.includes('confirm') || v.includes('complet')) return 'status-confirmed'
-  if (v.includes('pend')) return 'status-pending'
-  return 'status-pending'
+const formatRating = (value) => {
+  const num = typeof value === 'number' ? value : parseFloat(value)
+  if (Number.isFinite(num)) return num.toFixed(1)
+  return '4.5'
 }
 
-const citas = ref([])
-
-onMounted(async () => {
-  try {
-    // (opcional) si quieres refrescar el nombre desde el backend:
-    try {
-      const me = await api.get('/auth/me')
-      if (me?.data?.user?.name) userName.value = me.data.user.name
-    } catch (_) { /* ignora si no hay sesión */ }
-
-    const { data } = await api.get('/paciente/citas/proximas')
-    citas.value = Array.isArray(data) ? data : (data?.citas ?? [])
-  } catch (e) {
-    // 401 => token ausente/inválido: no rompas la UI
-    if (e?.response?.status === 401) {
-      citas.value = []
-      // si prefieres, redirige al login:
-      // router.push('/login')
-    }
-    // silenciado: nada de console.error
-  }
-})
+const statusClass = (s) => {
+  const v = (s || '').toLowerCase()
+  if (v.includes('confirm') || v.includes('complet')) return 'status-confirmed'
+  if (v.includes('pend')) return 'status-pending'
+  if (v.includes('cancel')) return 'status-cancelled'
+  return 'status-pending'
+}
 </script>
 
 
@@ -320,5 +463,60 @@ onMounted(async () => {
 @media (max-width: 980px){
   .mr-search{ display:none }
 }
+.status-cancelled{
+  background: rgba(255,107,107,.15);
+  color: #ff9b9b;
+}
+
+.skeleton{
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,.08);
+  display: inline-block;
+}
+.skeleton::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.35), rgba(255,255,255,0));
+  animation: shimmer 1.4s infinite;
+}
+
+.skeleton-number{ width:48px; height:22px; border-radius:12px; }
+.skeleton-line{ width:80%; height:12px; border-radius:8px; margin:4px 0; display:block; }
+.skeleton-line.full{ width:100%; }
+.skeleton-line.small{ width:60%; }
+.skeleton-line.smaller{ width:40%; }
+.skeleton-avatar{ width:48px; height:48px; border-radius:50%; }
+.skeleton-button{ width:100%; height:34px; border-radius:999px; display:block; margin-top:12px; }
+.skeleton-badge{ width:90px; height:24px; border-radius:999px; display:inline-block; }
+.skeleton-card{ border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); }
+
+@keyframes shimmer{
+  100%{ transform: translateX(100%); }
+}
+
+.empty-state{
+  font-size:14px;
+  color:rgba(255,255,255,.65);
+  padding:12px;
+  margin:0;
+}
+
+.health-tip.empty-tip{
+  background: rgba(255,255,255,.04);
+}
+
+.health-tip .tip-body h4{ margin-bottom:6px; }
+.health-tip .tip-body ul{
+  margin:8px 0 0;
+  padding-left:18px;
+  display:grid;
+  gap:6px;
+  font-size:13px;
+  color:rgba(255,255,255,.75);
+}
+.health-tip.empty-tip p{ margin:0; }
 
 </style>

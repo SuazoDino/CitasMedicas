@@ -5,8 +5,9 @@ use App\Http\Controllers\Api\AuthController; // 👈 OJO: Api, no Auth
 use App\Http\Controllers\Api\CatalogoController;
 use App\Http\Controllers\Api\PacienteCitasController;
 use App\Http\Controllers\Api\MedicoCitasController;
+use App\Http\Controllers\Api\Paciente\DashboardController as PacienteDashboardController;
 use App\Http\Controllers\Api\MedicoSlotsController;
-use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosController;
+use App\Http\Controllers\Api\Medico\HorariosController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('paciente')->group(function () {
+        Route::get('resumen', [PacienteDashboardController::class, 'resumen']);
         Route::get('citas/proximas', [PacienteCitasController::class, 'proximas']);
         Route::post('citas',         [PacienteCitasController::class, 'store']);
         Route::post('citas/{id}/cancelar', [PacienteCitasController::class, 'cancelar']);

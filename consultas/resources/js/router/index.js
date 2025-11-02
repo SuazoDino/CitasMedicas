@@ -14,7 +14,6 @@ import ForgotPass    from '../ui/forms/ForgotPasswordForm.vue'
 import ResetPass     from '../ui/forms/ResetPasswordForm.vue'
 import LandingRoute  from '../ui/pages/LandingRoute.vue' 
 import MedicoHorarios from '../ui/pages/MedicoHorarios.vue'
-
 // --- rutas (mismas que enviaste) ---
 const routes = [
   {
