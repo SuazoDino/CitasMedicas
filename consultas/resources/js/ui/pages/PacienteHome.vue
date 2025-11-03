@@ -175,7 +175,8 @@
                   <div class="doctor-card-info">
                     <h4>{{ d.nombre }}</h4>
                     <div class="doctor-card-specialty">{{ d.especialidad }}</div>
-                    <div class="rating">⭐ {{ d.rating }} ({{ d.reviews }} reviews)</div>
+                    <div class="rating" v-if="d.reviews > 0">⭐ {{ formatRating(d.rating) }} ({{ d.reviews }} reseñas)</div>
+                    <div class="rating" v-else>Sin reseñas registradas</div>
                   </div>
                 </div>
                 <button class="btn-book">Agendar Cita</button>
@@ -219,9 +220,10 @@
 
 <script setup>
 
-import { ref, onMounted, onBeforeUnmount, onBeforeUnmount } from 'vue'
+import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+
 
 const userName = ref('')
 const menuOpen = ref(false)
