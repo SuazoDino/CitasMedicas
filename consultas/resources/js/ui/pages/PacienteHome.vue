@@ -35,6 +35,11 @@
     </div>
   </header>
   <section class="page-slot">
+    <transition-group name="toast" tag="div" class="toast-container" aria-live="polite" aria-atomic="true">
+      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="`toast--${toast.type}`">
+        {{ toast.message }}
+      </div>
+    </transition-group>
     <div class="container">
 
       <!-- WELCOME -->
@@ -139,8 +144,22 @@
             </div>
 
             <div class="appointment-actions">
-              <button class="btn-action btn-cancel">Cancelar</button>
-              <button class="btn-action btn-reschedule">Reprogramar</button>
+              <button
+                class="btn-action btn-cancel"
+                :disabled="isCancelling(c.id)"
+                @click="cancelCita(c)"
+              >
+                <span v-if="isCancelling(c.id)" class="btn-spinner"></span>
+                <span v-else>Cancelar</span>
+              </button>
+              <button
+                class="btn-action btn-reschedule"
+                :disabled="isRescheduling(c.id)"
+                @click="openReprogramModal(c)"
+              >
+                <span v-if="isRescheduling(c.id)" class="btn-spinner"></span>
+                <span v-else>Reprogramar</span>
+              </button>
               <button class="btn-action btn-video">🎥 Videollamada</button>
             </div>
           </div>
@@ -215,6 +234,14 @@
         </div>
       </div>
     </div>
+    <ReprogramarModal
+      :visible="reprogramModal.visible"
+      :medico-id="reprogramModal.cita?.medico_id ?? null"
+      :current-start="reprogramModal.cita?.starts_at ?? null"
+      :loading="reprogramModal.cita ? isRescheduling(reprogramModal.cita.id) : false"
+      @close="closeReprogramModal"
+      @select="handleReprogramSelect"
+    />
   </section>
 </template>
 
@@ -223,7 +250,7 @@
 import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
-
+import ReprogramarModal from '@/ui/components/ReprogramarModal.vue'
 
 const userName = ref('')
 const menuOpen = ref(false)
@@ -241,6 +268,10 @@ const recomendados = computed(() => resumen.recomendados)
 const tipsList = computed(() => resumen.tips)
 const citas = ref([])
 
+const actionState = reactive({})
+const toasts = ref([])
+const reprogramModal = reactive({ visible: false, cita: null })
+
 const resumenLoading = ref(true)
 const citasLoading = ref(true)
 const resumenError = ref(false)
@@ -252,6 +283,72 @@ const hasTips = computed(() => tipsList.value.length > 0)
 function handleOutside(e) {
   if (!e.target.closest('.mr-dh')) menuOpen.value = false
 }
+const ensureActionState = (id) => {
+  if (!actionState[id]) actionState[id] = { cancel: false, reschedule: false }
+  return actionState[id]
+}
+
+const isCancelling = (id) => ensureActionState(id).cancel
+const isRescheduling = (id) => ensureActionState(id).reschedule
+
+const toastDuration = 3200
+
+function showToast(message, type = 'success') {
+  const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  toasts.value.push({ id, message, type })
+  setTimeout(() => removeToast(id), toastDuration)
+}
+
+function removeToast(id) {
+  toasts.value = toasts.value.filter((toast) => toast.id !== id)
+}
+
+function formatIsoDate(iso) {
+  try {
+    const date = new Date(iso)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  } catch (error) {
+    return ''
+  }
+}
+
+function formatIsoTime(iso) {
+  try {
+    const date = new Date(iso)
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${hours}:${minutes}`
+  } catch (error) {
+    return ''
+  }
+}
+
+function normalizeCita(row) {
+  const start = row.starts_at ?? (row.fecha && row.hora ? `${row.fecha}T${row.hora}` : null)
+  const normalized = { ...row, starts_at: start, ends_at: row.ends_at ?? null }
+  if (start) {
+    normalized.fecha = row.fecha ?? formatIsoDate(start)
+    normalized.hora = row.hora ?? formatIsoTime(start)
+  }
+  return normalized
+}
+
+function sortCitasList() {
+  citas.value = [...citas.value].sort((a, b) => {
+    const aTime = a?.starts_at ? new Date(a.starts_at).getTime() : 0
+    const bTime = b?.starts_at ? new Date(b.starts_at).getTime() : 0
+    return aTime - bTime
+  })
+}
+
+function updateProximasCount() {
+  const current = resumen.stats ?? baseStats
+  resumen.stats = { ...current, proximas: citas.value.length }
+}
+
 
 /* ---------- Cliente Axios central con Bearer automático ---------- */
 onMounted(() => {
@@ -302,9 +399,9 @@ async function loadCitas() {
   try {
     const { data } = await api.get('/paciente/citas/proximas')
     const rows = Array.isArray(data) ? data : (data?.citas ?? [])
-    citas.value = rows
-    const current = resumen.stats ?? baseStats
-    resumen.stats = { ...current, proximas: rows.length }
+    citas.value = rows.map(normalizeCita)
+    sortCitasList()
+    updateProximasCount()
   } catch (error) {
     if (error?.response?.status === 401) {
       citas.value = []
@@ -313,8 +410,73 @@ async function loadCitas() {
       // si prefieres, redirige al login:
       // router.push('/login')
     }
+    updateProximasCount()
   } finally {
   citasLoading.value = false
+  }
+}
+
+async function cancelCita(cita) {
+  if (!cita?.id) return
+  const state = ensureActionState(cita.id)
+  if (state.cancel) return
+
+  state.cancel = true
+  try {
+    await api.post(`/paciente/citas/${cita.id}/cancelar`)
+    citas.value = citas.value.filter((row) => row.id !== cita.id)
+    updateProximasCount()
+    showToast('Cita cancelada correctamente.')
+  } catch (error) {
+    const message = error?.response?.data?.message ?? 'No se pudo cancelar la cita.'
+    showToast(message, 'error')
+  } finally {
+    state.cancel = false
+  }
+}
+
+function openReprogramModal(cita) {
+  if (!cita) return
+  reprogramModal.visible = true
+  reprogramModal.cita = cita
+}
+
+function closeReprogramModal() {
+  reprogramModal.visible = false
+  reprogramModal.cita = null
+}
+
+async function handleReprogramSelect(slot) {
+  const cita = reprogramModal.cita
+  if (!cita?.id || !slot?.start) return
+
+  const state = ensureActionState(cita.id)
+  if (state.reschedule) return
+
+  state.reschedule = true
+  try {
+    const payload = {
+      starts_at: slot.start,
+      medico_id: cita.medico_id,
+      especialidad_id: cita.especialidad_id,
+    }
+    const { data } = await api.put(`/paciente/citas/${cita.id}`, payload)
+    const newStart = data?.starts_at ?? slot.start
+    const newEnd = data?.ends_at ?? slot.end
+    cita.starts_at = newStart
+    cita.ends_at = newEnd
+    cita.fecha = formatIsoDate(newStart)
+    cita.hora = formatIsoTime(newStart)
+    cita.estado = data?.estado ?? 'pendiente'
+    sortCitasList()
+    updateProximasCount()
+    closeReprogramModal()
+    showToast('Cita reprogramada correctamente.')
+  } catch (error) {
+    const message = error?.response?.data?.message ?? 'No se pudo reprogramar la cita.'
+    showToast(message, 'error')
+  } finally {
+    state.reschedule = false
   }
 }
 
@@ -348,6 +510,48 @@ const statusClass = (s) => {
 
 
 <style scoped>
+.toast-container{
+  position:fixed;
+  top:20px;right:20px;
+  display:grid;gap:12px;
+  z-index:1200;
+}
+.toast{
+  min-width:220px;
+  padding:12px 18px;
+  border-radius:12px;
+  background:rgba(37,206,209,.95);
+  color:#0a0118;
+  font-weight:600;
+  box-shadow:0 18px 40px rgba(10,1,24,.28);
+}
+.toast--error{
+  background:rgba(192,57,43,.95);
+  color:#fff;
+}
+.toast-enter-active,.toast-leave-active{
+  transition:all .25s ease;
+}
+.toast-enter-from,.toast-leave-to{
+  opacity:0;
+  transform:translateY(-10px);
+}
+.btn-action[disabled]{
+  opacity:.6;
+  cursor:not-allowed;
+}
+.btn-spinner{
+  width:16px;height:16px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  display:inline-block;
+  animation:btn-spin .75s linear infinite;
+}
+@keyframes btn-spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
 /* ===== Header del panel de Paciente (scoped) ===== */
 .dash-header{position:sticky;top:0;z-index:20;margin:12px 0 24px}
 .dh-inner{

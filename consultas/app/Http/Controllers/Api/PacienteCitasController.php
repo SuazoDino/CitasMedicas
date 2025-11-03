@@ -22,13 +22,26 @@ class PacienteCitasController extends Controller
           ->where('c.paciente_id',$pid)
           ->where('c.starts_at','>=',now())
           ->orderBy('c.starts_at')
-          ->get(['c.id','c.starts_at','c.ends_at','c.estado','e.nombre as especialidad','u.name as medico']);
+          ->get([
+              'c.id',
+              'c.medico_id',
+              'c.especialidad_id',
+              'c.starts_at',
+              'c.ends_at',
+              'c.estado',
+              'e.nombre as especialidad',
+              'u.name as medico'
+          ]);
 
         return $rows->map(function($x){
             return [
               'id'=>$x->id,
+              'medico_id'=>$x->medico_id,
+              'especialidad_id'=>$x->especialidad_id,
               'fecha'=>Carbon::parse($x->starts_at)->format('Y-m-d'),
               'hora'=>Carbon::parse($x->starts_at)->format('H:i'),
+              'starts_at'=>Carbon::parse($x->starts_at)->toIso8601String(),
+              'ends_at'=>Carbon::parse($x->ends_at)->toIso8601String(),
               'estado'=>$x->estado,
               'especialidad'=>$x->especialidad,
               'medico'=>$x->medico,
@@ -95,5 +108,59 @@ class PacienteCitasController extends Controller
             'updated_at'=>now(),
         ]);
         return response()->json(['ok'=>true]);
+    }
+     public function update(Request $r, $id){
+        $uid = $r->user()->id;
+        $pid = $this->pacienteId($uid);
+        $cita = DB::table('citas')->where('id',$id)->first();
+        if (!$cita || $cita->paciente_id != $pid) return response()->json(['message'=>'No autorizado'],403);
+
+        $data = $r->validate([
+            'starts_at'       => 'required|date',
+            'medico_id'       => 'sometimes|exists:medicos,id',
+            'especialidad_id' => 'sometimes|exists:especialidades,id',
+        ]);
+
+        $medicoId = $data['medico_id'] ?? $cita->medico_id;
+        $especialidadId = $data['especialidad_id'] ?? $cita->especialidad_id;
+
+        $start = Carbon::parse($data['starts_at']);
+        $dow   = (int) $start->dayOfWeek;
+        $slot  = DB::table('medico_horarios')
+                  ->where('medico_id',$medicoId)
+                  ->where('dia_semana',$dow)->where('activo',true)
+                  ->where('hora_inicio','<=',$start->format('H:i:s'))
+                  ->where('hora_fin','>',$start->format('H:i:s'))
+                  ->first();
+        if (!$slot) {
+            return response()->json(['message'=>'El horario seleccionado no está disponible'], 422);
+        }
+
+        $slotMin = $slot?->slot_min ?? 30;
+        $end = (clone $start)->addMinutes($slotMin);
+
+        $conflict = DB::table('citas')
+            ->where('medico_id',$medicoId)
+            ->where('id','<>',$id)
+            ->where('starts_at','<',$end)
+            ->where('ends_at','>',$start)
+            ->exists();
+        if ($conflict) return response()->json(['message'=>'Horario ocupado'], 422);
+
+        DB::table('citas')->where('id',$id)->update([
+            'medico_id' => $medicoId,
+            'especialidad_id' => $especialidadId,
+            'starts_at'=>$start,
+            'ends_at'=>$end,
+            'estado'=>'pendiente',
+            'updated_at'=>now(),
+        ]);
+
+        return response()->json([
+            'ok'=>true,
+            'starts_at'=>$start->toIso8601String(),
+            'ends_at'=>$end->toIso8601String(),
+            'estado'=>'pendiente',
+        ]);
     }
 }

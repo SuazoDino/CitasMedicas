@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('resumen', [PacienteDashboardController::class, 'resumen']);
         Route::get('citas/proximas', [PacienteCitasController::class, 'proximas']);
         Route::post('citas',         [PacienteCitasController::class, 'store']);
+        Route::put('citas/{id}',     [PacienteCitasController::class, 'update']);
         Route::post('citas/{id}/cancelar', [PacienteCitasController::class, 'cancelar']);
     });
 
