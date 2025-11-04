@@ -45,12 +45,32 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+        'mailgun' => [
+            'transport' => 'mailgun',
+            'domain' => env('MAILGUN_DOMAIN'),
+            'secret' => env('MAILGUN_SECRET'),
+            'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
+            'scheme' => env('MAILGUN_SCHEME', 'https'),
         ],
 
         'ses' => [
             'transport' => 'ses',
+            'key' => env('SES_KEY', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('SES_SECRET', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('SES_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'configuration_set' => env('SES_CONFIGURATION_SET'),
+        ],
+
+        'ses-v2' => [
+            'transport' => 'ses-v2',
+            'key' => env('SES_KEY', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('SES_SECRET', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('SES_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'configuration_set' => env('SES_CONFIGURATION_SET'),
         ],
 
         'postmark' => [
@@ -82,7 +102,8 @@ return [
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
-                'smtp',
+                'mailgun',
+                'ses',
                 'log',
             ],
             'retry_after' => 60,
@@ -91,6 +112,7 @@ return [
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => [
+                'mailgun',
                 'ses',
                 'postmark',
             ],

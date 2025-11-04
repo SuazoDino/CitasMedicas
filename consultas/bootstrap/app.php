@@ -1,5 +1,7 @@
 <?php
 
+use App\Jobs\SendUpcomingAppointmentReminders;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->job(new SendUpcomingAppointmentReminders())
+            ->everyFifteenMinutes()
+            ->withoutOverlapping()
+            ->onOneServer();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })

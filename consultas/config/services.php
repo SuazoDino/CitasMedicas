@@ -13,6 +13,12 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'mailgun' => [
+        'domain' => env('MAILGUN_DOMAIN'),
+        'secret' => env('MAILGUN_SECRET'),
+        'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
+        'scheme' => env('MAILGUN_SCHEME', 'https'),
+    ],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
@@ -23,9 +29,10 @@ return [
     ],
 
     'ses' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'key' => env('SES_KEY', env('AWS_ACCESS_KEY_ID')),
+        'secret' => env('SES_SECRET', env('AWS_SECRET_ACCESS_KEY')),
+        'region' => env('SES_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+        'configuration_set' => env('SES_CONFIGURATION_SET'),
     ],
 
     'slack' => [

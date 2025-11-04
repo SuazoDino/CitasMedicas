@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Notifications\ResetPasswordNotificataion;
+use App\Models\NotificationPreference;
 
 class User extends Authenticatable
 {
@@ -29,15 +31,21 @@ class User extends Authenticatable
     }
 
     // Solo si luego vas a crear estos perfiles:
-    public function medico()
+    public function medico(): HasOne
     {
         return $this->hasOne(Medico::class, 'user_id');
     }
 
-    public function paciente()
+    public function paciente(): HasOne
     {
         return $this->hasOne(Paciente::class, 'user_id');
     }
+    
+    public function notificationPreference(): HasOne
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token));

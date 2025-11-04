@@ -7,7 +7,8 @@ use App\Http\Controllers\Api\PacienteCitasController;
 use App\Http\Controllers\Api\MedicoCitasController;
 use App\Http\Controllers\Api\Paciente\DashboardController as PacienteDashboardController;
 use App\Http\Controllers\Api\MedicoSlotsController;
-use App\Http\Controllers\Api\Medico\HorariosController;
+use App\Http\Controllers\Api\NotificationPreferenceController;
+use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('citas',         [PacienteCitasController::class, 'store']);
         Route::put('citas/{id}',     [PacienteCitasController::class, 'update']);
         Route::post('citas/{id}/cancelar', [PacienteCitasController::class, 'cancelar']);
+        Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updatePaciente']);
     });
 
     Route::prefix('medico')->group(function () {
@@ -49,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('horarios/{horario}',   [MedicoHorariosController::class, 'update']);
         Route::patch('horarios/{horario}', [MedicoHorariosController::class, 'update']);
         Route::delete('horarios/{horario}', [MedicoHorariosController::class, 'destroy']);
+        Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updateMedico']);
     });
 });
 
