@@ -16,6 +16,8 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@vee-validate/core": "^4.13.5",
+        "@vee-validate/rules": "^4.13.5",
         "vue": "^3.5.22",
         "vue-router": "^4.6.3"
     }

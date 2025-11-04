@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 use App\Models\User;
 use App\Models\Role;
@@ -18,9 +19,12 @@ class AuthController extends Controller
     public function registerPaciente(Request $r)
     {
         $data = $r->validate([
-            'name'     => ['required','string','max:120'],
-            'email'    => ['required','email','max:190','unique:users,email'],
-            'password' => ['required','string','min:6'],
+            'full_name' => ['required_without:name','string','max:120'],
+            'name'      => ['required_without:full_name','string','max:120'],
+            'email'     => ['required','email','max:190','unique:users,email'],
+            'phone'     => ['nullable','string','max:30'],
+            'password'  => ['required','string','min:6'],
+            'role'      => ['nullable', Rule::in(['paciente'])],
 
             // si tu formulario ya envía estos campos, se guardan; si no, quedan null
             'doc_tipo'   => ['nullable','string','max:10'],
@@ -29,16 +33,27 @@ class AuthController extends Controller
             'gender'     => ['nullable','string','max:10'],
         ]);
 
-        $res = DB::transaction(function () use ($data, $r) {
+        $name = $data['full_name'] ?? $data['name'];
+        $phone = $data['phone'] ?? null;
+        $requestedRole = $data['role'] ?? 'paciente';
+
+        $roleId = Role::where('name', $requestedRole)->value('id');
+        if (!$roleId) {
+            return response()->json([
+                'message' => 'No pudimos asignar el rol solicitado.',
+                'errors'  => ['role' => ['El rol solicitado no existe.']],
+            ], 422);
+        }
+
+        $res = DB::transaction(function () use ($data, $name, $phone, $roleId) {
             $u = User::create([
-                'name'     => $data['name'],
+                'name'     => $name,
                 'email'    => $data['email'],
+                'phone'    => $phone,
                 'password' => Hash::make($data['password']),
             ]);
 
-            // rol paciente
-            $pacienteRoleId = Role::where('name','paciente')->value('id') ?? 2;
-            $u->roles()->syncWithoutDetaching([$pacienteRoleId]);
+            $u->roles()->syncWithoutDetaching([$roleId]);
 
             // fila en 'pacientes' (si ya existe, no duplica)
             Paciente::firstOrCreate(
@@ -54,7 +69,6 @@ class AuthController extends Controller
             $token = $u->createToken('web')->plainTextToken;
 
             // devolvemos también los roles para que el front pueda redirigir sin llamar a /me
-            $roles = $u->roles()->pluck('name')->all();
             return response()->json([
                 'token' => $token,
                 'user'  => $u,
@@ -69,9 +83,12 @@ class AuthController extends Controller
     public function registerMedico(Request $r)
     {
         $data = $r->validate([
-            'name'          => ['required','string','max:120'],
+            'full_name'     => ['required_without:name','string','max:120'],
+            'name'          => ['required_without:full_name','string','max:120'],
             'email'         => ['required','email','max:190','unique:users,email'],
+            'phone'         => ['nullable','string','max:30'],
             'password'      => ['required','string','min:6'],
+            'role'          => ['nullable', Rule::in(['medico'])],
 
             // columnas que tienes en la tabla 'medicos'
             'id_doc_tipo'   => ['required','string','max:10'],
@@ -81,16 +98,28 @@ class AuthController extends Controller
             'lic_pais'      => ['required','string','max:4'],
         ]);
 
-        $res = DB::transaction(function () use ($data) {
+        $name = $data['full_name'] ?? $data['name'];
+        $phone = $data['phone'] ?? null;
+        $requestedRole = $data['role'] ?? 'medico';
+
+        $roleId = Role::where('name', $requestedRole)->value('id');
+        if (!$roleId) {
+            return response()->json([
+                'message' => 'No pudimos asignar el rol solicitado.',
+                'errors'  => ['role' => ['El rol solicitado no existe.']],
+            ], 422);
+        }
+
+        $res = DB::transaction(function () use ($data, $name, $phone, $roleId) {
             $u = User::create([
-                'name'     => $data['name'],
+                'name'     => $name,
                 'email'    => $data['email'],
+                'phone'    => $phone,
                 'password' => Hash::make($data['password']),
             ]);
 
             // rol médico
-            $medicoRoleId = Role::where('name','medico')->value('id') ?? 3;
-            $u->roles()->syncWithoutDetaching([$medicoRoleId]);
+            $u->roles()->syncWithoutDetaching([$roleId]);
 
             // fila en 'medicos'
             Medico::create([
@@ -107,7 +136,6 @@ class AuthController extends Controller
             ]);
 
             $token = $u->createToken('web')->plainTextToken;
-            $roles = $u->roles()->pluck('name')->all();
 
             return response()->json([
                 'token' => $token,
@@ -130,7 +158,15 @@ class AuthController extends Controller
 
         $u = User::where('email', $data['email'])->first();
         if (!$u || !Hash::check($data['password'], $u->password)) {
-            return response()->json(['error' => 'Credenciales inválidas'], 401);
+            return response()->json([
+                'message' => 'Las credenciales proporcionadas no son válidas.',
+                'errors'  => [
+                    'email' => ['Revisa tu correo y contraseña e inténtalo nuevamente.'],
+                ],
+                'hints'   => [
+                    'reset' => 'Si olvidaste tu contraseña puedes solicitar un enlace de recuperación.',
+                ],
+            ], 422);
         }
 
         $token = $u->createToken('web')->plainTextToken;

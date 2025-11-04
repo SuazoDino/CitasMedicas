@@ -17,6 +17,10 @@ export default defineConfig({
   // (opcional) si te diera problemas de compilación de templates:
   // resolve: { alias: { 'vue': 'vue/dist/vue.esm-bundler.js' } }
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'resources/js') },
+    alias: {
+      '@': path.resolve(__dirname, 'resources/js'),
+      '@vee-validate/core': path.resolve(__dirname, 'resources/js/vendor/vee-validate-core.js'),
+      '@vee-validate/rules': path.resolve(__dirname, 'resources/js/vendor/vee-validate-rules.js'),
+    },
   },
 })

@@ -4,9 +4,8 @@ import axios from 'axios'
 
 // Imports RELATIVOS (como tienes)
 import DesignShell   from '../ui/DesignShell.vue'
-import Login         from '../ui/forms/LoginForm.vue'
-import RegPaciente   from '../ui/forms/RegisterPacienteForm.vue'
-import RegMedico     from '../ui/forms/RegisterMedicoForm.vue'
+import AuthLogin     from '../ui/pages/Auth/Login.vue'
+import AuthRegister  from '../ui/pages/Auth/Register.vue'
 import MedicoHome    from '../ui/pages/MedicoHome.vue'
 import PacienteHome  from '../ui/pages/PacienteHome.vue'
 import ReservarCita  from '../ui/pages/ReservarCita.vue'
@@ -21,11 +20,21 @@ const routes = [
     component: DesignShell, // aquí están tus 2 <RouterView/> (overlay + page-slot)
     children: [
       { path: '', name :'landing', component : LandingRoute },
-      { path: 'login', name: 'login', component: Login },
+      { path: 'login', name: 'login', component: AuthLogin },
       { path: 'forgot-password', name: 'forgot-password', component: ForgotPass },
       { path: 'reset-password', name: 'reset-password', component: ResetPass },
-      { path: 'register/paciente', name: 'register.paciente', component: RegPaciente },
-      { path: 'register/medico', name: 'register.medico', component: RegMedico },
+      {
+        path: 'register/paciente',
+        name: 'register.paciente',
+        component: AuthRegister,
+        props: { defaultRole: 'paciente' },
+      },
+      {
+        path: 'register/medico',
+        name: 'register.medico',
+        component: AuthRegister,
+        props: { defaultRole: 'medico' },
+      },
       {
         path: 'me/reservar',
         name: 'paciente.reservar',

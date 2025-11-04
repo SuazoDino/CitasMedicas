@@ -1,13 +1,13 @@
 <template>
   <!-- ANIMATED BACKGROUND -->
-  <div class="animated-bg">
+  <div v-if="!isAuthPage" class="animated-bg">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
   </div>
 
   <!-- NAVBAR -->
-  <nav class="navbar" v-if="!isAppNav">
+  <nav class="navbar" v-if="!isAppNav && !isAuthPage">
     
     <div class="nav-container">
       <div class="logo">⚡ MediReserva</div>
@@ -25,7 +25,7 @@
       </div>
     </div>
   </nav>
-  <nav class="navbar appnav" v-else>
+  <nav class="navbar appnav" v-else-if="isAppNav">
     <div class="nav-container">
       <div class="logo">⚡ MediReserva</div>
 
@@ -228,18 +228,12 @@
     <div class="footer-bottom"><p>© 2025 MediReserva. Innovación en Salud Digital.</p></div>
   </footer>
 
-  <!-- OVERLAY / MODAL: aquí se renderiza el formulario de la ruta hija -->
-  <transition name="fade">
-    <div v-if="isOverlay" class="overlay">
-      <div class="sheet">
-        <button class="sheet-close" @click="closeOverlay">✕</button>
-        <RouterView />
-      </div>
-    </div>
-  </transition>
+  <section v-if="isAuthPage" class="auth-page-slot">
+    <RouterView />
+  </section>
 
   <!-- 👇 NUEVO: área para páginas normales (medico, me, etc.) -->
-  <section v-if="!isOverlay" class="page-slot">
+  <section v-else class="page-slot">
     <RouterView />
   </section>
 
@@ -261,16 +255,10 @@ const route = useRoute()
 const router = useRouter()
 router.afterEach(() => { menuOpen.value = false })
 
-// --- ¿Se muestra como overlay/modal? (solo login/registro) ---
-const isOverlay = computed(() =>
-[
-    '/login',
-    '/forgot-password',
-    '/reset-password',
-    '/register/paciente',
-    '/register/medico'
-  ].includes(route.path)
-)
+const AUTH_ROUTES = ['/login', '/forgot-password', '/reset-password', '/register/paciente', '/register/medico']
+
+// --- ¿Página de autenticación? (pantalla completa)
+const isAuthPage = computed(() => AUTH_ROUTES.includes(route.path))
 
 // --- ¿Página interna de la app? (/me o /medico) ---
 const isAppPage = computed(() =>
@@ -278,10 +266,10 @@ const isAppPage = computed(() =>
 )
 
 // --- Navbar compacta del panel (app nav) ---
-const isAppNav = computed(() => !isOverlay.value && isAppPage.value)
+const isAppNav = computed(() => !isAuthPage.value && isAppPage.value)
 
 // --- ¿Mostrar landing (hero, stats, specialties, about, footer)? ---
-const isLandingVisible = computed(() => !isOverlay.value && !isAppPage.value)
+const isLandingVisible = computed(() => !isAuthPage.value && !isAppPage.value)
 
 // --- (opcional) etiqueta de rol para evitar warnings si la usas en el template ---
 const roleLabel = computed(() =>
@@ -336,18 +324,10 @@ async function logout () {
 
 // --- Utilidades UI ---
 function go(path){
-  if (route.path === path && isOverlay.value) {
-    closeOverlay()
-    return
-  }
+  if (route.path === path) return
   router.push(path)
 }
 
-function closeOverlay(){
-  if (route.path !== '/') {
-    router.push('/')
-  }
-}
 function scrollTo(sel){ document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }) }
 
 // --- Data "Nosotros" (igual a la tuya) ---
@@ -570,21 +550,9 @@ footer{background:rgba(10,1,24,.8);backdrop-filter:blur(20px);border-top:1px sol
   .nav-links{display:none}
 }
 
-/* Overlay modal */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:200}
-.sheet{width:min(680px,92vw);max-height:88vh;overflow:auto;background:rgba(17,24,39,.9);border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.5);padding:28px 24px;position:relative}
-.sheet-close{position:absolute;top:10px;right:12px;background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer}
-.fade-enter-active,.fade-leave-active{transition:opacity .2s}
-.fade-enter-from,.fade-leave-to{opacity:0}
-input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#e2e8f0}
-label{display:block;font-size:14px;margin:12px 0 6px;color:#cbd5e1}
-.btn{display:inline-block;background:#22c55e;border:0;color:#052e16;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer}
-.btn.sec{background:#38bdf8;color:#062233}
-.btn.full{width:100%}
-.err{color:#fecaca;margin:8px 0 0 2px;font-size:13px}
-
-
 /* ==== PÁGINAS INTERNAS (slot) ==== */
+.auth-page-slot{min-height:100vh;display:flex;flex-direction:column;align-items:stretch;justify-content:stretch;background:#070212}
+.auth-page-slot>*{flex:1 1 auto}
 .page-slot{
   max-width:1200px;
   margin:0 auto;
