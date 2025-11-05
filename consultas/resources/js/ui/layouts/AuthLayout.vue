@@ -15,34 +15,44 @@
       <div class="auth-shell__content">
         <aside v-if="showAside" class="auth-hero">
           <slot name="aside">
-            <div class="auth-hero__header">
-            <span class="auth-hero__eyebrow">{{ eyebrow }}</span>
-            <h2 class="auth-hero__title">Una experiencia pensada para tu consulta</h2>
-          </div>
+            <div class="auth-hero__intro">
+              <span class="auth-hero__badge">{{ eyebrow }}</span>
+              <h2 class="auth-hero__headline">Gestiona tu consulta sin complicaciones</h2>
+              <p class="auth-hero__lead">
+                Coordina agendas, recordatorios y seguimiento clínico dentro de una misma plataforma. Diseño y
+                usabilidad alineados con la experiencia principal de MediReserva.
+              </p>
+            </div>
 
-          <p class="auth-hero__copy">
-            Mantén el control de tus agendas, envía recordatorios automáticos y ofrece una experiencia digital
-            impecable a tus pacientes.
-          </p>
+            <div class="auth-hero__grid">
+              <article
+                v-for="card in showcaseCards"
+                :key="card.id"
+                class="auth-hero-card"
+                :class="{ 'is-accent': card.accent }"
+              >
+                <header class="auth-hero-card__header">
+                  <span class="auth-hero-card__eyebrow">{{ card.eyebrow }}</span>
+                  <h3 class="auth-hero-card__title">{{ card.title }}</h3>
+                </header>
+                <p class="auth-hero-card__copy">{{ card.copy }}</p>
+                <ul class="auth-hero-card__list">
+                  <li v-for="item in card.items" :key="item" class="auth-hero-card__item">
+                    <span aria-hidden="true">✔</span>
+                    <span>{{ item }}</span>
+                  </li>
+                </ul>
+              </article>
+            </div>
 
-          <ul class="auth-hero__highlights">
-            <li v-for="item in asideBullets" :key="item.id">
-              <span class="auth-hero__icon">{{ item.icon }}</span>
-              <div>
-                <strong>{{ item.title }}</strong>
-                <p>{{ item.copy }}</p>
-              </div>
-            </li>
-          </ul>
-
-          <footer class="auth-hero__footer">
-            <p class="auth-hint">
-              ¿Necesitas ayuda?
-              <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a>
-            </p>
-          </footer>
-        </slot>
-      </aside>
+            <footer class="auth-hero__footer">
+              <p class="auth-hint">
+                ¿Necesitas ayuda?
+                <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a>
+              </p>
+            </footer>
+          </slot>
+        </aside>
 
         <section class="auth-panel">
           <header class="auth-panel__header">
@@ -110,24 +120,29 @@ const messageClass = computed(() => {
   return 'is-info'
 })
 
-const asideBullets = computed(() => [
+const showcaseCards = computed(() => [
   {
-    id: 'agenda',
-    icon: '📅',
-    title: 'Agenda inteligente',
-    copy: 'Configura horarios dinámicos y automatiza confirmaciones sin perder tu toque humano.',
+    id: 'experience',
+    eyebrow: 'MediReserva Pro',
+    title: 'Una experiencia pensada para tu consulta',
+    copy: 'Automatiza confirmaciones, sincroniza calendarios y mantén el control de tu agenda desde un panel intuitivo.',
+    items: [
+      'Agenda médica unificada con disponibilidad en tiempo real',
+      'Recordatorios confirmados por correo y WhatsApp',
+      'Seguimiento a pacientes y métricas clave para tu consultorio',
+    ],
   },
   {
-    id: 'recordatorios',
-    icon: '🔔',
-    title: 'Recordatorios multicanal',
-    copy: 'Envía notificaciones por correo y WhatsApp para reducir ausencias y retrasos.',
-  },
-  {
-    id: 'insights',
-    icon: '📈',
-    title: 'Insights accionables',
-    copy: 'Observa métricas clave de tus pacientes y actúa con datos en tiempo real.',
+    id: 'patients',
+    eyebrow: 'Pacientes',
+    title: 'Tu salud en un mismo lugar',
+    copy: 'Consulta historial, reprograma citas y recibe notificaciones personalizadas desde cualquier dispositivo.',
+    items: [
+      'Reservas con especialistas verificados en pocos pasos',
+      'Expedientes compartidos con tus médicos de confianza',
+      'Soporte humano cuando lo necesites',
+    ],
+    accent: true,
   },
 ])
 
