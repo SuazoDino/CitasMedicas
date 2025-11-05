@@ -46,13 +46,15 @@
 
         <aside v-if="showAside" class="auth-support">
           <slot name="aside">
-            <p class="auth-support__title">¿Necesitas ayuda?</p>
-            <ul class="auth-support__list">
-              <li>Contacta a soporte@medireserva.com</li>
-              <li>Recupera tu acceso desde “Recuperar contraseña”.</li>
-              <li>Administra tus recordatorios en cuestión de minutos.</li>
-            </ul>
-            <a class="auth-support__cta" href="mailto:soporte@medireserva.com">Escríbenos cuando lo necesites →</a>
+            <div class="auth-support__panel">
+              <p class="auth-support__title">¿Necesitas ayuda?</p>
+              <ul class="auth-support__list">
+                <li>Contacta a soporte@medireserva.com</li>
+                <li>Recupera tu acceso desde “Recuperar contraseña”.</li>
+                <li>Administra tus recordatorios en cuestión de minutos.</li>
+              </ul>
+              <a class="auth-support__cta" href="mailto:soporte@medireserva.com">Escríbenos cuando lo necesites →</a>
+            </div>
           </slot>
         </aside>
       </div>
