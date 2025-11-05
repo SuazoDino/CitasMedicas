@@ -4,7 +4,7 @@
     subtitle="Ingresa con tu correo electrónico para retomar tus citas y mantener al dia a tus pacientes."
     :context-message="layoutMessage"
     :footer-copy="'¿Necesitas ayuda? Escríbenos a soporte@medireserva.com'"
-    :show-aside="false"
+    :show-aside="true"
   >
     
     <template #aside>
