@@ -1,69 +1,28 @@
 <template>
-  <div class="auth-surface" :data-variant="resolvedTheme">
-    <div class="auth-surface__glow" aria-hidden="true"></div>
+  <div class="auth-view" :data-variant="resolvedTheme">
+    <div class="auth-view__pattern" aria-hidden="true"></div>
 
-    <div class="auth-shell">
-      <header class="auth-shell__brand">
+    <div class="auth-view__container">
+      <header class="auth-brand">
         <slot name="brand">
-          <div class="auth-brand">
+          <div>
             <span class="auth-brand__logo">MediReserva</span>
-            <p class="auth-brand__tagline">Coordina tus citas con una plataforma hecha para consultorios modernos.</p>
+            <p class="auth-brand__tagline">
+              Coordina tus citas con una plataforma hecha para consultorios modernos.
+            </p>
           </div>
         </slot>
       </header>
 
-      <div class="auth-shell__content">
-        <aside v-if="showAside" class="auth-hero">
-          <slot name="aside">
-            <div class="auth-hero__intro">
-              <span class="auth-hero__badge">{{ eyebrow }}</span>
-              <h2 class="auth-hero__headline">Gestiona tu consulta sin complicaciones</h2>
-              <p class="auth-hero__lead">
-                Coordina agendas, recordatorios y seguimiento clínico dentro de una misma plataforma. Diseño y
-                usabilidad alineados con la experiencia principal de MediReserva.
-              </p>
-            </div>
-
-            <div class="auth-hero__grid">
-              <article
-                v-for="card in showcaseCards"
-                :key="card.id"
-                class="auth-hero-card"
-                :class="{ 'is-accent': card.accent }"
-              >
-                <header class="auth-hero-card__header">
-                  <span class="auth-hero-card__eyebrow">{{ card.eyebrow }}</span>
-                  <h3 class="auth-hero-card__title">{{ card.title }}</h3>
-                </header>
-                <p class="auth-hero-card__copy">{{ card.copy }}</p>
-                <ul class="auth-hero-card__list">
-                  <li v-for="item in card.items" :key="item" class="auth-hero-card__item">
-                    <span aria-hidden="true">✔</span>
-                    <span>{{ item }}</span>
-                  </li>
-                </ul>
-              </article>
-            </div>
-
-            <footer class="auth-hero__footer">
-              <p class="auth-hint">
-                ¿Necesitas ayuda?
-                <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a>
-              </p>
-            </footer>
-          </slot>
-        </aside>
-
-        <section class="auth-panel">
-          <header class="auth-panel__header">
-            <div>
-              <p v-if="eyebrow" class="auth-panel__eyebrow">{{ eyebrow }}</p>
-              <h1 class="auth-panel__title">{{ title }}</h1>
-              <p v-if="subtitle" class="auth-panel__subtitle">{{ subtitle }}</p>
-            </div>
+      <div :class="layoutClasses">
+        <section class="auth-card">
+          <header class="auth-card__header">
+            <p v-if="eyebrow" class="auth-card__eyebrow">{{ eyebrow }}</p>
+            <h1 class="auth-card__title">{{ title }}</h1>
+            <p v-if="subtitle" class="auth-card__subtitle">{{ subtitle }}</p>
           </header>
 
-          <div v-if="messageBody" class="auth-panel__notice" :class="messageClass">
+          <div v-if="messageBody" class="auth-card__notice" :class="messageClass">
             <strong v-if="messageTitle">{{ messageTitle }}</strong>
             <p>{{ messageBody }}</p>
             <ul v-if="messageList?.length" class="auth-feedback">
@@ -78,12 +37,24 @@
             <slot />
           </div>
 
-          <footer v-if="$slots.footer || footerCopy" class="auth-panel__footer">
+          <footer v-if="$slots.footer || footerCopy" class="auth-card__footer">
             <slot name="footer">
               <span v-if="footerCopy">{{ footerCopy }}</span>
             </slot>
           </footer>
         </section>
+
+        <aside v-if="showAside" class="auth-support">
+          <slot name="aside">
+            <p class="auth-support__title">¿Necesitas ayuda?</p>
+            <ul class="auth-support__list">
+              <li>Contacta a soporte@medireserva.com</li>
+              <li>Recupera tu acceso desde “Recuperar contraseña”.</li>
+              <li>Administra tus recordatorios en cuestión de minutos.</li>
+            </ul>
+            <a class="auth-support__cta" href="mailto:soporte@medireserva.com">Escríbenos cuando lo necesites →</a>
+          </slot>
+        </aside>
       </div>
     </div>
   </div>
@@ -109,6 +80,14 @@ const props = defineProps({
 
 const resolvedTheme = computed(() => (props.variant === 'light' ? 'light' : 'brand'))
 
+const layoutClasses = computed(() => {
+  const classes = ['auth-layout']
+  if (props.showAside) {
+    classes.push('auth-layout--with-aside')
+  }
+  return classes
+})
+
 const messageVariant = computed(() => props.contextMessage?.variant ?? 'info')
 const messageTitle = computed(() => props.contextMessage?.title ?? null)
 const messageBody = computed(() => props.contextMessage?.body ?? props.contextMessage?.message ?? '')
@@ -119,32 +98,6 @@ const messageClass = computed(() => {
   if (messageVariant.value === 'danger' || messageVariant.value === 'error') return 'is-danger'
   return 'is-info'
 })
-
-const showcaseCards = computed(() => [
-  {
-    id: 'experience',
-    eyebrow: 'MediReserva Pro',
-    title: 'Una experiencia pensada para tu consulta',
-    copy: 'Automatiza confirmaciones, sincroniza calendarios y mantén el control de tu agenda desde un panel intuitivo.',
-    items: [
-      'Agenda médica unificada con disponibilidad en tiempo real',
-      'Recordatorios confirmados por correo y WhatsApp',
-      'Seguimiento a pacientes y métricas clave para tu consultorio',
-    ],
-  },
-  {
-    id: 'patients',
-    eyebrow: 'Pacientes',
-    title: 'Tu salud en un mismo lugar',
-    copy: 'Consulta historial, reprograma citas y recibe notificaciones personalizadas desde cualquier dispositivo.',
-    items: [
-      'Reservas con especialistas verificados en pocos pasos',
-      'Expedientes compartidos con tus médicos de confianza',
-      'Soporte humano cuando lo necesites',
-    ],
-    accent: true,
-  },
-])
 
 defineExpose({ resolvedTheme })
 </script>

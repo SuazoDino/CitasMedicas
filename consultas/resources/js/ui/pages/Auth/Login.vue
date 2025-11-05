@@ -1,72 +1,144 @@
 <template>
   <AuthLayout
     title="Inicia sesión"
-    subtitle="Ingresa con tu correo electrónico para retomar tus citas y gestionar tus pacientes."
+    subtitle="Ingresa con tu correo electrónico para retomar tus citas y mantener al dia a tus pacientes."
     :context-message="layoutMessage"
-    :footer-copy="'Tu información está protegida con cifrado y verificación en dos pasos opcional.'"
+    :footer-copy="'¿Necesitas ayuda? Escríbenos a soporte@medireserva.com'"
+    :show-aside="false"
   >
-    <form @submit="onSubmit">
-      <div class="auth-form__steps" v-if="stepMode">
-        <div class="auth-steps-bar" role="presentation">
-          <span v-for="(step, index) in totalSteps" :key="step" :class="{ 'is-active': index <= currentStep }"></span>
+    
+    <template #aside>
+      <section class="auth-hero auth-hero--flow">
+        <div class="auth-hero__intro">
+          <span class="auth-hero__badge">MediReserva ID</span>
+          <h2 class="auth-hero__headline">Tu agenda conectada en minutos</h2>
+          <p class="auth-hero__lead">
+            Mantén a tu equipo y pacientes sincronizados desde cualquier dispositivo. Disfruta la misma experiencia fluida
+            que en el resto de MediReserva, ahora enfocada en un acceso más claro.
+          </p>
         </div>
-        <span>{{ stepCopy }}</span>
-      </div>
+         <ol class="auth-flow" aria-label="Cómo funciona el acceso a MediReserva">
+          <li class="auth-flow__step">
+            <span class="auth-flow__indicator" aria-hidden="true">01</span>
+            <div class="auth-flow__content">
+              <h3 class="auth-flow__title">Confirma tus datos</h3>
+              <p class="auth-flow__copy">
+                Verificamos tu correo para mantener la seguridad sin añadir fricción innecesaria.
+              </p>
+            </div>
+          </li>
+          <li class="auth-flow__step">
+            <span class="auth-flow__indicator" aria-hidden="true">02</span>
+            <div class="auth-flow__content">
+              <h3 class="auth-flow__title">Protege tu acceso</h3>
+              <p class="auth-flow__copy">
+                Activa el modo guiado cuando quieras validar cada paso con recomendaciones inteligentes.
+              </p>
+            </div>
+          </li>
+          <li class="auth-flow__step">
+            <span class="auth-flow__indicator" aria-hidden="true">03</span>
+            <div class="auth-flow__content">
+              <h3 class="auth-flow__title">Organiza sin distracciones</h3>
+              <p class="auth-flow__copy">
+                Accede directo a tu panel clínico, sincroniza calendarios y da seguimiento a tus pacientes.
+              </p>
+            </div>
+          </li>
+        </ol>
 
-      <div v-if="!stepMode || currentStep === 0" class="auth-field">
-        <label class="auth-label" for="login-email">
-          Correo electrónico
-        </label>
-        <input
-          id="login-email"
-          ref="emailInput"
-          v-model="email.value"
-          @blur="email.handleBlur"
-          type="email"
-          autocomplete="email"
-          class="auth-input"
-          placeholder="tucorreo@dominio.com"
-        />
-        <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
-      </div>
-
-      <div v-if="!stepMode || currentStep === 1" class="auth-field">
-        <div class="auth-actions-secondary" style="margin-bottom: 0.4rem">
-          <label class="auth-label" for="login-password">Contraseña</label>
-          <RouterLink class="auth-secondary-link" :to="{ name: 'forgot-password', query: { email: email.value } }">
-            ¿Olvidaste tu contraseña?
+        <div class="auth-hero__footer auth-hero__footer--cta">
+          <p class="auth-hint">
+            ¿Necesitas ayuda? <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a>
+          </p>
+          <RouterLink class="auth-hero__cta" :to="{ name: 'register.paciente', query: { email: email.value } }">
+            Crear cuenta para mi consultorio
           </RouterLink>
         </div>
-        <input
-          id="login-password"
-          v-model="password.value"
-          @blur="password.handleBlur"
-          :type="showPassword ? 'text' : 'password'"
-          autocomplete="current-password"
-          class="auth-input"
-          placeholder="Ingresa tu contraseña"
-        />
-        <p v-if="password.errorMessage" class="auth-error">{{ password.errorMessage }}</p>
-        <label class="auth-hint" style="display:flex; align-items:center; gap:0.5rem; font-weight:600;">
-          <input type="checkbox" v-model="showPassword" /> Mostrar contraseña
-        </label>
-      </div>
+        
+        </section>
+    </template>
 
-      <div class="auth-actions-secondary">
-        <button type="button" class="auth-secondary-link" @click="toggleStepMode">
-          {{ stepMode ? 'Usar formulario simple' : 'Guiarme paso a paso' }}
-        </button>
-        <label class="auth-hint" style="display:flex; align-items:center; gap:0.4rem;">
-          <input type="checkbox" v-model="remember" /> Mantener mi sesión activa
-        </label>
-      </div>
+    <form @submit="onSubmit" class="auth-form__stack">
+      <section class="auth-fieldset auth-fieldset--options">
+        <header class="auth-fieldset__header">
+          <h2>Personaliza tu acceso</h2>
+          <p>Elige si prefieres un flujo guiado o ingresar tus datos en un solo paso.</p>
+        </header>
+        <div class="auth-preferences">
+          <button type="button" class="auth-preferences__toggle" @click="toggleStepMode">
+            <span class="auth-preferences__state">
+              {{ stepMode ? 'Guía paso a paso activa' : 'Formulario rápido' }}
+            </span>
+            <span class="auth-preferences__hint">
+              {{ stepMode ? 'Completa tus datos en dos pasos seguros.' : 'Ingresa correo y contraseña al mismo tiempo.' }}
+            </span>
+          </button>
+          <label class="auth-preferences__remember">
+            <input type="checkbox" v-model="remember" /> Mantener mi sesión activa
+          </label>
+        </div>
+      </section>
+
+      <section class="auth-fieldset auth-fieldset--form">
+        <header class="auth-fieldset__header">
+          <h2>Datos de acceso</h2>
+          <p>Ingresa la información con la que te registraste en MediReserva.</p>
+        </header>
+
+        <div class="auth-form__steps" v-if="stepMode">
+          <div class="auth-steps-bar" role="presentation">
+            <span v-for="(step, index) in totalSteps" :key="step" :class="{ 'is-active': index <= currentStep }"></span>
+          </div>
+          <span>{{ stepCopy }}</span>
+        </div>
+
+        <div v-if="!stepMode || currentStep === 0" class="auth-field">
+          <label class="auth-label" for="login-email">
+            Correo electrónico
+          </label>
+          <input
+            id="login-email"
+            ref="emailInput"
+            v-model="email.value"
+            @blur="email.handleBlur"
+            type="email"
+            autocomplete="email"
+            class="auth-input"
+            placeholder="tucorreo@dominio.com"
+          />
+          <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
+        </div>
+
+        <div v-if="!stepMode || currentStep === 1" class="auth-field auth-field--password">
+          <div class="auth-field__header">
+            <label class="auth-label" for="login-password">Contraseña</label>
+            <RouterLink class="auth-secondary-link" :to="{ name: 'forgot-password', query: { email: email.value } }">
+              ¿Olvidaste tu contraseña?
+            </RouterLink>
+          </div>
+          <input
+            id="login-password"
+            v-model="password.value"
+            @blur="password.handleBlur"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="current-password"
+            class="auth-input"
+            placeholder="Ingresa tu contraseña"
+          />
+          <p v-if="password.errorMessage" class="auth-error">{{ password.errorMessage }}</p>
+          <label class="auth-password-toggle">
+            <input type="checkbox" v-model="showPassword" /> Mostrar contraseña
+          </label>
+        </div>
+      </section>
 
       <button class="auth-button" type="submit" :disabled="isSubmitting">
         <span v-if="isSubmitting">Accediendo…</span>
         <span v-else>Entrar a mi cuenta</span>
       </button>
 
-      <p class="auth-hint" style="text-align:center;">
+      <p class="auth-hint auth-hint--center">
         ¿Primera vez aquí?
         <RouterLink class="auth-secondary-link" :to="{ name: 'register.paciente', query: { email: email.value } }">
           Crear una cuenta gratuita
