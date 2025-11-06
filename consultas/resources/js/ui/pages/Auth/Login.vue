@@ -1,139 +1,100 @@
 <template>
   <AuthLayout
-    title="Inicia sesión"
-    subtitle="Ingresa con tu correo electrónico para retomar tus citas y mantener al dia a tus pacientes."
+    title=""
+    subtitle=""
     :context-message="layoutMessage"
     :footer-copy="'¿Necesitas ayuda? Escríbenos a soporte@medireserva.com'"
-    :show-aside="true"
+    :show-aside="false"
+    variant="light"
   >
     
-    <template #aside>
-      <section class="auth-hero auth-hero--dashboard">
-        <header class="auth-hero__intro">
-          <span class="auth-hero__badge">Identidad MediReserva</span>
-          <h2 class="auth-hero__headline">Accede a tu panel clínico de escritorio</h2>
-          <p class="auth-hero__lead">
-            Inicia sesión para coordinar agenda, pacientes y recordatorios con la misma experiencia profesional que
-            disfrutas en todo MediReserva.
-          </p>
-        </header>
-
-        <div class="auth-hero__grid">
-          <article class="auth-hero__card auth-hero__card--stat">
-            <header>
-              <p class="auth-hero__card-eyebrow">Pacientes confirmados hoy</p>
-              <strong class="auth-hero__stat">18</strong>
-            </header>
-            <p class="auth-hero__card-copy">Automatiza confirmaciones y reduce ausencias con recordatorios inteligentes.</p>
-          </article>
-
-          <article class="auth-hero__card auth-hero__card--schedule">
-            <header class="auth-hero__card-header">
-              <p class="auth-hero__card-eyebrow">Próximas citas</p>
-              <span class="auth-hero__chip">Sincronizado</span>
-            </header>
-            <ul class="auth-hero__schedule">
-              <li>
-                <div>
-                  <strong>09:00</strong>
-                  <span>Consulta general</span>
-                </div>
-                <span class="auth-hero__badge-soft">María Pérez</span>
-              </li>
-              <li>
-                <div>
-                  <strong>10:30</strong>
-                  <span>Control pediátrico</span>
-                </div>
-                <span class="auth-hero__badge-soft">Luis A.</span>
-              </li>
-              <li>
-                <div>
-                  <strong>12:00</strong>
-                  <span>Teleconsulta</span>
-                </div>
-                <span class="auth-hero__badge-soft">Ana M.</span>
-              </li>
-            </ul>
-          </article>
-
-          <article class="auth-hero__card auth-hero__card--flow">
-            <h3 class="auth-hero__card-title">Cómo mantenemos tus datos seguros</h3>
-            <ol class="auth-flow" aria-label="Pasos para iniciar sesión">
-              <li class="auth-flow__step">
-                <span class="auth-flow__indicator" aria-hidden="true">01</span>
-                <div class="auth-flow__content">
-                  <h4 class="auth-flow__title">Valida tu correo</h4>
-                  <p class="auth-flow__copy">Confirmamos tu identidad con políticas corporativas reforzadas.</p>
-                </div>
-              </li>
-              <li class="auth-flow__step">
-                <span class="auth-flow__indicator" aria-hidden="true">02</span>
-                <div class="auth-flow__content">
-                  <h4 class="auth-flow__title">Protege tu acceso</h4>
-                  <p class="auth-flow__copy">Activa la guía paso a paso y personaliza tiempos de expiración.</p>
-                </div>
-              </li>
-              <li class="auth-flow__step">
-                <span class="auth-flow__indicator" aria-hidden="true">03</span>
-                <div class="auth-flow__content">
-                  <h4 class="auth-flow__title">Ingresa al panel</h4>
-                  <p class="auth-flow__copy">Retoma agenda, pagos y seguimiento clínico en segundos.</p>
-                </div>
-              </li>
-            </ol>
-          </article>
-        </div>
-
-        <footer class="auth-hero__footer auth-hero__footer--cta">
-          <p class="auth-hint">
-            ¿Necesitas ayuda? <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a>
-          </p>
-          <RouterLink class="auth-hero__cta" :to="{ name: 'register.paciente', query: { email: email.value } }">
-            Crear cuenta para mi consultorio
-          </RouterLink>
-        </footer>
-      </section>
+    <template #brand>
+      <div class="login-brand">
+        <span class="login-brand__logo">MediReserva</span>
+        <p class="login-brand__tagline">La plataforma que conecta tu consultorio con tus pacientes en segundos.</p>
+      </div>
     </template>
 
-    <form @submit="onSubmit" class="auth-form auth-form__stack">
-      <section class="auth-fieldset auth-fieldset--options">
-        <header class="auth-fieldset__header">
-          <h2>Personaliza tu acceso</h2>
-          <p>Elige si prefieres un flujo guiado o ingresar tus datos en un solo paso.</p>
+    <div class="login-layout">
+      <section class="login-hero">
+        <span class="login-hero__badge">Suite profesional</span>
+        <h2 class="login-hero__title">Gestiona tus citas con la misma experiencia de tu landing principal</h2>
+        <p class="login-hero__lead">
+          Controla agendas, recordatorios y la comunicación con tus pacientes sin perder el estilo vibrante de MediReserva.
+        </p>
+
+        <div class="login-hero__cards">
+          <article class="login-info-card">
+            <h3>Agenda inteligente</h3>
+            <p>Recibe confirmaciones automáticas y reduce cancelaciones de último minuto.</p>
+          </article>
+
+          <article class="login-info-card">
+            <h3>Seguimiento clínico</h3>
+            <p>Accede al historial de cada paciente y comparte indicaciones con tu equipo.</p>
+          </article>
+          <article class="login-info-card">
+            <h3>Experiencia unificada</h3>
+            <p>Un inicio de sesión coherente con el resto de tu proyecto y tus colores distintivos.</p>
+          </article>
+        </div>
+
+        <RouterLink class="login-hero__cta" :to="{ name: 'register.paciente', query: { email: email.value } }">
+          Crear una cuenta para mi consultorio
+        </RouterLink>
+      </section>
+      <form @submit="onSubmit" class="login-card">
+        <header class="login-card__header">
+          <h1>Accede a tu cuenta</h1>
+          <p>Utiliza tus credenciales para continuar organizando a tus pacientes.</p>
+  
         </header>
-        <div class="auth-preferences">
-          <button type="button" class="auth-preferences__toggle" @click="toggleStepMode">
-            <span class="auth-preferences__state">
-              {{ stepMode ? 'Guía paso a paso activa' : 'Formulario rápido' }}
+        <div class="login-card__providers">
+          <button class="login-provider" type="button">
+            <span class="login-provider__icon" aria-hidden="true">G</span>
+            Continuar con Google
+          </button>
+          <button class="login-provider" type="button">
+            <span class="login-provider__icon" aria-hidden="true"></span>
+            Continuar con Apple
+          </button>
+        </div>
+
+        <div class="login-divider" role="presentation">
+          <span>o accede con tu correo electrónico</span>
+        </div>
+
+        <section class="login-preferences">
+          <button type="button" class="login-toggle" @click="toggleStepMode">
+            <span class="login-toggle__state">
+              {{ stepMode ? 'Modo guiado activo' : 'Modo formulario rápido' }}
             </span>
-            <span class="auth-preferences__hint">
-              {{ stepMode ? 'Completa tus datos en dos pasos seguros.' : 'Ingresa correo y contraseña al mismo tiempo.' }}
+            <span class="login-toggle__hint">
+              {{
+                stepMode
+                  ? 'Completa tu correo y luego tu contraseña en dos pasos.'
+                  : 'Introduce tus datos en un solo paso.'
+              }}
             </span>
           </button>
-          <label class="auth-preferences__remember">
+          <label class="login-remember">
             <input type="checkbox" v-model="remember" /> Mantener mi sesión activa
           </label>
-        </div>
-      </section>
+        </section>
 
-      <section class="auth-fieldset auth-fieldset--form">
-        <header class="auth-fieldset__header">
-          <h2>Datos de acceso</h2>
-          <p>Ingresa la información con la que te registraste en MediReserva.</p>
-        </header>
-
-        <div class="auth-form__steps" v-if="stepMode">
-          <div class="auth-steps-bar" role="presentation">
-            <span v-for="(step, index) in totalSteps" :key="step" :class="{ 'is-active': index <= currentStep }"></span>
+      <div v-if="stepMode" class="login-stepper" role="presentation">
+          <div class="login-stepper__track">
+            <span
+              v-for="(step, index) in totalSteps"
+              :key="step"
+              :class="['login-stepper__dot', { 'is-active': index <= currentStep }]"
+            ></span>
           </div>
-          <span>{{ stepCopy }}</span>
+          <span class="login-stepper__copy">{{ stepCopy }}</span>
         </div>
 
-        <div v-if="!stepMode || currentStep === 0" class="auth-field">
-          <label class="auth-label" for="login-email">
-            Correo electrónico
-          </label>
+        <div v-if="!stepMode || currentStep === 0" class="login-field">
+          <label class="login-label" for="login-email">Correo electrónico</label>
           <input
             id="login-email"
             ref="emailInput"
@@ -141,16 +102,16 @@
             @blur="email.handleBlur"
             type="email"
             autocomplete="email"
-            class="auth-input"
+            class="login-input"
             placeholder="tucorreo@dominio.com"
           />
-          <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
+          <p v-if="email.errorMessage" class="login-error">{{ email.errorMessage }}</p>
         </div>
 
-        <div v-if="!stepMode || currentStep === 1" class="auth-field auth-field--password">
-          <div class="auth-field__header">
-            <label class="auth-label" for="login-password">Contraseña</label>
-            <RouterLink class="auth-secondary-link" :to="{ name: 'forgot-password', query: { email: email.value } }">
+        <div v-if="!stepMode || currentStep === 1" class="login-field">
+          <div class="login-field__header">
+            <label class="login-label" for="login-password">Contraseña</label>
+            <RouterLink class="login-link" :to="{ name: 'forgot-password', query: { email: email.value } }">
               ¿Olvidaste tu contraseña?
             </RouterLink>
           </div>
@@ -160,28 +121,29 @@
             @blur="password.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="current-password"
-            class="auth-input"
+            class="login-input"
             placeholder="Ingresa tu contraseña"
           />
           <p v-if="password.errorMessage" class="auth-error">{{ password.errorMessage }}</p>
           <label class="auth-password-toggle">
-            <input type="checkbox" v-model="showPassword" /> Mostrar contraseña
+            <input type="login-checkbox" v-model="showPassword" /> Mostrar contraseña
           </label>
         </div>
-      </section>
+      
 
-      <button class="auth-button" type="submit" :disabled="isSubmitting">
-        <span v-if="isSubmitting">Accediendo…</span>
-        <span v-else>Entrar a mi cuenta</span>
-      </button>
+        <button class="login-submit" type="submit" :disabled="isSubmitting">
+          <span v-if="isSubmitting">Accediendo…</span>
+          <span v-else>Iniciar sesión</span>
+        </button>
 
-      <p class="auth-hint auth-hint--center">
-        ¿Primera vez aquí?
-        <RouterLink class="auth-secondary-link" :to="{ name: 'register.paciente', query: { email: email.value } }">
-          Crear una cuenta gratuita
-        </RouterLink>
-      </p>
-    </form>
+      <p class="login-footer">
+          ¿Aún no tienes cuenta?
+          <RouterLink class="login-link" :to="{ name: 'register.paciente', query: { email: email.value } }">
+            Crear una cuenta gratuita
+          </RouterLink>
+        </p>
+      </form>
+    </div>
   </AuthLayout>
 </template>
 
@@ -335,3 +297,389 @@ const stepCopy = computed(() => {
     : 'Paso 2 de 2 — Protegemos tu acceso'
 })
 </script>
+
+<style scoped>
+.login-layout {
+  display: grid;
+  gap: 3rem;
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.login-brand__logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1b103a;
+}
+
+.login-brand__tagline {
+  color: #475569;
+  font-size: 0.95rem;
+  max-width: 28rem;
+}
+
+.login-hero {
+  background: linear-gradient(135deg, rgba(131, 56, 236, 0.08), rgba(255, 0, 110, 0.1));
+  border: 1px solid rgba(131, 56, 236, 0.15);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.login-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff006e, #8338ec);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.login-hero__title {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0;
+  color: #111827;
+}
+
+.login-hero__lead {
+  margin: 0;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.login-hero__cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.login-info-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.login-info-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.login-info-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.login-hero__cta {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid rgba(131, 56, 236, 0.4);
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #7c3aed;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-hero__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25);
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 2.5rem;
+  box-shadow: 0 25px 45px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.login-card__header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #111827;
+}
+
+.login-card__header p {
+  margin: 0.5rem 0 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.login-card__providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.login-provider {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-provider:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.15);
+}
+
+.login-provider__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff006e, #8338ec);
+  color: #fff;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.login-divider span {
+  padding: 0 1rem;
+}
+
+.login-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.login-toggle {
+  text-align: left;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-toggle:hover {
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 12px 24px rgba(124, 58, 237, 0.18);
+}
+
+.login-toggle__state {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.login-toggle__hint {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.login-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.login-remember input {
+  width: 16px;
+  height: 16px;
+}
+
+.login-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.login-stepper__track {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.login-stepper__dot {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.4);
+  transition: background 0.2s ease;
+}
+
+.login-stepper__dot.is-active {
+  background: linear-gradient(135deg, #ff006e, #8338ec);
+}
+
+.login-stepper__copy {
+  font-weight: 500;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-field__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.login-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.login-input {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.65);
+  background: #f8fafc;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+}
+
+.login-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+.login-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.login-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.login-link {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.login-submit {
+  background: linear-gradient(135deg, #ff006e, #8338ec);
+  border: none;
+  border-radius: 16px;
+  padding: 0.9rem 1.25rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.login-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 15px 30px rgba(131, 56, 236, 0.35);
+}
+
+.login-submit:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.login-footer {
+  text-align: center;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 960px) {
+  .login-layout {
+    gap: 2rem;
+  }
+
+  .login-hero {
+    padding: 2rem;
+  }
+
+  .login-card {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .login-card {
+    padding: 1.75rem;
+  }
+
+  .login-card__providers {
+    flex-direction: column;
+  }
+}
+</style>
