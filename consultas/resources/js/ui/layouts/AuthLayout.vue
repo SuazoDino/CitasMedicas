@@ -45,8 +45,7 @@
         </section>
 
         <aside v-if="showAside" class="auth-support">
-          <slot name="aside">
-            <div class="auth-support__panel">
+          <div class="auth-support__panel">
               <p class="auth-support__title">¿Necesitas ayuda?</p>
               <ul class="auth-support__list">
                 <li>Contacta a soporte@medireserva.com</li>
@@ -55,7 +54,6 @@
               </ul>
               <a class="auth-support__cta" href="mailto:soporte@medireserva.com">Escríbenos cuando lo necesites →</a>
             </div>
-          </slot>
         </aside>
       </div>
     </div>
