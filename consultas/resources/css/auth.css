@@ -892,6 +892,9 @@ section.page-slot input:focus, section.page-slot select:focus{
   border-color:var(--brand); box-shadow:0 0 0 4px var(--focus);
 }
 
+
+
+
 /* Botón primario con tu color */
 section.page-slot .btn-primary,
 section.page-slot button[type="submit"],
