@@ -1,28 +1,72 @@
 <template>
-  <div class="auth-view" :data-variant="resolvedTheme">
-    <div class="auth-view__pattern" aria-hidden="true"></div>
+  <div class="auth-stage" :data-variant="resolvedTheme">
+    <div class="auth-stage__halo" aria-hidden="true"></div>
 
-    <div class="auth-view__container">
-      <header class="auth-brand">
-        <slot name="brand">
-          <div>
-            <span class="auth-brand__logo">MediReserva</span>
-            <p class="auth-brand__tagline">
-              Coordina tus citas con una plataforma hecha para consultorios modernos.
-            </p>
-          </div>
+    <div :class="layoutClasses">
+      <aside v-if="showAside" class="auth-stage__visual">
+        <slot name="aside">
+          <section class="auth-hero auth-hero--default">
+            <header class="auth-hero__intro">
+              <span class="auth-hero__badge">Experiencia MediReserva</span>
+              <h2 class="auth-hero__headline">Organiza tu consulta en tiempo real</h2>
+              <p class="auth-hero__lead">
+                Conecta agendas, recordatorios y seguimiento clínico en una sola plataforma con la claridad que esperas
+                en escritorio.
+              </p>
+            </header>
+
+            <ul class="auth-flow" aria-label="Beneficios de MediReserva">
+              <li class="auth-flow__step">
+                <span class="auth-flow__indicator" aria-hidden="true">01</span>
+                <div class="auth-flow__content">
+                  <h3 class="auth-flow__title">Sincroniza tu equipo</h3>
+                  <p class="auth-flow__copy">Comparte tu agenda con asistentes y especialistas sin perder control.</p>
+                </div>
+              </li>
+              <li class="auth-flow__step">
+                <span class="auth-flow__indicator" aria-hidden="true">02</span>
+                <div class="auth-flow__content">
+                  <h3 class="auth-flow__title">Recordatorios inteligentes</h3>
+                  <p class="auth-flow__copy">Automatiza confirmaciones y avisos a pacientes según tus reglas.</p>
+                </div>
+              </li>
+              <li class="auth-flow__step">
+                <span class="auth-flow__indicator" aria-hidden="true">03</span>
+                <div class="auth-flow__content">
+                  <h3 class="auth-flow__title">Panel clínico unificado</h3>
+                  <p class="auth-flow__copy">Consulta historial, notas y pagos desde una interfaz preparada para tu equipo.</p>
+                </div>
+              </li>
+            </ul>
+
+            <footer class="auth-hero__footer">
+              <p class="auth-hint">¿Necesitas ayuda? <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a></p>
+              <a class="auth-hero__cta" href="mailto:soporte@medireserva.com">Habla con nosotros</a>
+            </footer>
+          </section>
         </slot>
-      </header>
+      </aside>
 
-      <div :class="layoutClasses">
-        <section class="auth-card">
-          <header class="auth-card__header">
-            <p v-if="eyebrow" class="auth-card__eyebrow">{{ eyebrow }}</p>
-            <h1 class="auth-card__title">{{ title }}</h1>
-            <p v-if="subtitle" class="auth-card__subtitle">{{ subtitle }}</p>
+      <main class="auth-stage__panel">
+        <header class="auth-header">
+          <slot name="brand">
+            <div class="auth-header__brand">
+              <span class="auth-header__logo">MediReserva</span>
+              <p class="auth-header__tagline">
+                Coordina tus citas con una plataforma hecha para consultorios modernos.
+              </p>
+            </div>
+          </slot>
+        </header>
+
+        <section class="auth-panel">
+          <header class="auth-panel__intro">
+            <p v-if="eyebrow" class="auth-panel__eyebrow">{{ eyebrow }}</p>
+            <h1 class="auth-panel__title">{{ title }}</h1>
+            <p v-if="subtitle" class="auth-panel__subtitle">{{ subtitle }}</p>
           </header>
 
-          <div v-if="messageBody" class="auth-card__notice" :class="messageClass">
+          <div v-if="messageBody" class="auth-panel__notice" :class="messageClass">
             <strong v-if="messageTitle">{{ messageTitle }}</strong>
             <p>{{ messageBody }}</p>
             <ul v-if="messageList?.length" class="auth-feedback">
@@ -33,29 +77,18 @@
             </ul>
           </div>
 
-          <div class="auth-form">
+          <div class="auth-panel__body">
             <slot />
           </div>
 
-          <footer v-if="$slots.footer || footerCopy" class="auth-card__footer">
+          <footer v-if="$slots.footer || footerCopy" class="auth-panel__footer">
             <slot name="footer">
               <span v-if="footerCopy">{{ footerCopy }}</span>
             </slot>
           </footer>
         </section>
 
-        <aside v-if="showAside" class="auth-support">
-          <div class="auth-support__panel">
-              <p class="auth-support__title">¿Necesitas ayuda?</p>
-              <ul class="auth-support__list">
-                <li>Contacta a soporte@medireserva.com</li>
-                <li>Recupera tu acceso desde “Recuperar contraseña”.</li>
-                <li>Administra tus recordatorios en cuestión de minutos.</li>
-              </ul>
-              <a class="auth-support__cta" href="mailto:soporte@medireserva.com">Escríbenos cuando lo necesites →</a>
-            </div>
-        </aside>
-      </div>
+      </main>
     </div>
   </div>
 </template>
@@ -81,9 +114,11 @@ const props = defineProps({
 const resolvedTheme = computed(() => (props.variant === 'light' ? 'light' : 'brand'))
 
 const layoutClasses = computed(() => {
-  const classes = ['auth-layout']
+  const classes = ['auth-stage__wrap']
   if (props.showAside) {
-    classes.push('auth-layout--with-aside')
+    classes.push('auth-stage__wrap--with-aside')
+  } else {
+    classes.push('auth-stage__wrap--single')
   }
   return classes
 })

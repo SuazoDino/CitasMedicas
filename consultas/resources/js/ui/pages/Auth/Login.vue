@@ -8,58 +8,95 @@
   >
     
     <template #aside>
-      <section class="auth-hero auth-hero--flow">
-        <div class="auth-hero__intro">
-          <span class="auth-hero__badge">MediReserva ID</span>
-          <h2 class="auth-hero__headline">Tu agenda conectada en minutos</h2>
+      <section class="auth-hero auth-hero--dashboard">
+        <header class="auth-hero__intro">
+          <span class="auth-hero__badge">Identidad MediReserva</span>
+          <h2 class="auth-hero__headline">Accede a tu panel clínico de escritorio</h2>
           <p class="auth-hero__lead">
-            Mantén a tu equipo y pacientes sincronizados desde cualquier dispositivo. Disfruta la misma experiencia fluida
-            que en el resto de MediReserva, ahora enfocada en un acceso más claro.
+            Inicia sesión para coordinar agenda, pacientes y recordatorios con la misma experiencia profesional que
+            disfrutas en todo MediReserva.
           </p>
-        </div>
-         <ol class="auth-flow" aria-label="Cómo funciona el acceso a MediReserva">
-          <li class="auth-flow__step">
-            <span class="auth-flow__indicator" aria-hidden="true">01</span>
-            <div class="auth-flow__content">
-              <h3 class="auth-flow__title">Confirma tus datos</h3>
-              <p class="auth-flow__copy">
-                Verificamos tu correo para mantener la seguridad sin añadir fricción innecesaria.
-              </p>
-            </div>
-          </li>
-          <li class="auth-flow__step">
-            <span class="auth-flow__indicator" aria-hidden="true">02</span>
-            <div class="auth-flow__content">
-              <h3 class="auth-flow__title">Protege tu acceso</h3>
-              <p class="auth-flow__copy">
-                Activa el modo guiado cuando quieras validar cada paso con recomendaciones inteligentes.
-              </p>
-            </div>
-          </li>
-          <li class="auth-flow__step">
-            <span class="auth-flow__indicator" aria-hidden="true">03</span>
-            <div class="auth-flow__content">
-              <h3 class="auth-flow__title">Organiza sin distracciones</h3>
-              <p class="auth-flow__copy">
-                Accede directo a tu panel clínico, sincroniza calendarios y da seguimiento a tus pacientes.
-              </p>
-            </div>
-          </li>
-        </ol>
+        </header>
 
-        <div class="auth-hero__footer auth-hero__footer--cta">
+        <div class="auth-hero__grid">
+          <article class="auth-hero__card auth-hero__card--stat">
+            <header>
+              <p class="auth-hero__card-eyebrow">Pacientes confirmados hoy</p>
+              <strong class="auth-hero__stat">18</strong>
+            </header>
+            <p class="auth-hero__card-copy">Automatiza confirmaciones y reduce ausencias con recordatorios inteligentes.</p>
+          </article>
+
+          <article class="auth-hero__card auth-hero__card--schedule">
+            <header class="auth-hero__card-header">
+              <p class="auth-hero__card-eyebrow">Próximas citas</p>
+              <span class="auth-hero__chip">Sincronizado</span>
+            </header>
+            <ul class="auth-hero__schedule">
+              <li>
+                <div>
+                  <strong>09:00</strong>
+                  <span>Consulta general</span>
+                </div>
+                <span class="auth-hero__badge-soft">María Pérez</span>
+              </li>
+              <li>
+                <div>
+                  <strong>10:30</strong>
+                  <span>Control pediátrico</span>
+                </div>
+                <span class="auth-hero__badge-soft">Luis A.</span>
+              </li>
+              <li>
+                <div>
+                  <strong>12:00</strong>
+                  <span>Teleconsulta</span>
+                </div>
+                <span class="auth-hero__badge-soft">Ana M.</span>
+              </li>
+            </ul>
+          </article>
+
+          <article class="auth-hero__card auth-hero__card--flow">
+            <h3 class="auth-hero__card-title">Cómo mantenemos tus datos seguros</h3>
+            <ol class="auth-flow" aria-label="Pasos para iniciar sesión">
+              <li class="auth-flow__step">
+                <span class="auth-flow__indicator" aria-hidden="true">01</span>
+                <div class="auth-flow__content">
+                  <h4 class="auth-flow__title">Valida tu correo</h4>
+                  <p class="auth-flow__copy">Confirmamos tu identidad con políticas corporativas reforzadas.</p>
+                </div>
+              </li>
+              <li class="auth-flow__step">
+                <span class="auth-flow__indicator" aria-hidden="true">02</span>
+                <div class="auth-flow__content">
+                  <h4 class="auth-flow__title">Protege tu acceso</h4>
+                  <p class="auth-flow__copy">Activa la guía paso a paso y personaliza tiempos de expiración.</p>
+                </div>
+              </li>
+              <li class="auth-flow__step">
+                <span class="auth-flow__indicator" aria-hidden="true">03</span>
+                <div class="auth-flow__content">
+                  <h4 class="auth-flow__title">Ingresa al panel</h4>
+                  <p class="auth-flow__copy">Retoma agenda, pagos y seguimiento clínico en segundos.</p>
+                </div>
+              </li>
+            </ol>
+          </article>
+        </div>
+
+        <footer class="auth-hero__footer auth-hero__footer--cta">
           <p class="auth-hint">
             ¿Necesitas ayuda? <a href="mailto:soporte@medireserva.com">soporte@medireserva.com</a>
           </p>
           <RouterLink class="auth-hero__cta" :to="{ name: 'register.paciente', query: { email: email.value } }">
             Crear cuenta para mi consultorio
           </RouterLink>
-        </div>
-        
-        </section>
+        </footer>
+      </section>
     </template>
 
-    <form @submit="onSubmit" class="auth-form__stack">
+    <form @submit="onSubmit" class="auth-form auth-form__stack">
       <section class="auth-fieldset auth-fieldset--options">
         <header class="auth-fieldset__header">
           <h2>Personaliza tu acceso</h2>
