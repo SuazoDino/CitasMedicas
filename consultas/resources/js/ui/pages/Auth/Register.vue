@@ -1,215 +1,254 @@
 <template>
-  <AuthLayout
-    :title="roleLabel === 'medico' ? 'Crea tu perfil profesional' : 'Abre tu cuenta de paciente'"
-    subtitle="Completa la información para personalizar tu experiencia dentro de MediReserva."
-    :context-message="layoutMessage"
-    :show-aside="true"
-  >
-    <form @submit="onSubmit">
-      <div class="auth-form__steps" v-if="stepMode">
-        <div class="auth-steps-bar" role="presentation">
-          <span
-            v-for="(step, index) in steps"
-            :key="step.id"
-            :class="{ 'is-active': index <= currentStep }"
-          ></span>
-        </div>
-        <span>{{ stepCopy }}</span>
+  <div class="doctoralia-auth">
+    <!-- Logo centrado arriba -->
+    <div class="auth-logo">
+      <span class="auth-logo__icon">⚡</span>
+      <span class="auth-logo__text">MediReserva</span>
       </div>
 
-      <section v-if="!stepMode || currentStep === 0" class="auth-fieldset">
-        <header class="auth-field">
-          <label class="auth-label">¿Cómo quieres registrarte?</label>
-          <div class="auth-actions-secondary" style="justify-content:flex-start; gap:1rem;">
-            <label class="auth-hint" style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="radio" value="paciente" v-model="role.value" /> Soy paciente
-            </label>
-            <label class="auth-hint" style="display:flex; align-items:center; gap:0.5rem;">
-              <input type="radio" value="medico" v-model="role.value" /> Soy profesional de la salud
-            </label>
-          </div>
-          <p v-if="role.errorMessage" class="auth-error">{{ role.errorMessage }}</p>
-        </header>
+    <!-- Formulario centrado -->
+    <div class="auth-container">
+      <form @submit="onSubmit" class="auth-form">
+        <h1 class="auth-title">Crear una cuenta gratuita</h1>
 
+        <!-- Selección de tipo de cuenta (solo en paso 1) -->
+        <div v-if="!stepMode || currentStep === 0" class="auth-role-selector">
+          <label class="auth-role-option" :class="{ 'is-selected': roleLabel === 'paciente' }" @click="selectRole('paciente')">
+            <input type="radio" value="paciente" :checked="roleLabel === 'paciente'" class="auth-role-input" @change="selectRole('paciente')" />
+            <div class="auth-role-card">
+              <div class="auth-role-icon">👤</div>
+              <div class="auth-role-content">
+                <h3>Soy paciente</h3>
+                <p>Comparte información básica con tu especialista antes de la visita</p>
+              </div>
+            </div>
+            </label>
+
+          <label class="auth-role-option" :class="{ 'is-selected': roleLabel === 'medico' }" @click="selectRole('medico')">
+            <input type="radio" value="medico" :checked="roleLabel === 'medico'" class="auth-role-input" @change="selectRole('medico')" />
+            <div class="auth-role-card">
+              <div class="auth-role-icon">👨‍⚕️</div>
+              <div class="auth-role-content">
+                <h3>Soy especialista</h3>
+                <p>Consigue que tus pacientes te conozcan, confíen en ti y reserven contigo</p>
+              </div>
+            </div>
+            </label>
+          <p v-if="role.errorMessage" class="auth-error">{{ role.errorMessage }}</p>
+          
+          <!-- Indicador visual cuando se selecciona médico -->
+          <div v-if="roleLabel === 'medico'" class="auth-role-notice">
+            <p>Como especialista, necesitarás completar tus datos de identidad y licencia profesional en el paso 3.</p>
+          </div>
+        </div>
+
+        <!-- Paso 1: Perfil -->
+        <div v-if="!stepMode || currentStep === 0" class="auth-step">
         <div class="auth-field">
-          <label class="auth-label" for="reg-full-name">Nombre completo</label>
           <input
             id="reg-full-name"
-            v-model="fullName.value"
+              :value="String(fullName.value || '')"
+              @input="fullName.setValue($event.target.value)"
             @blur="fullName.handleBlur"
             type="text"
             autocomplete="name"
             class="auth-input"
-            placeholder="Ej. Daniela Rodríguez"
+              placeholder="Nombre completo"
           />
           <p v-if="fullName.errorMessage" class="auth-error">{{ fullName.errorMessage }}</p>
         </div>
 
         <div class="auth-field">
-          <label class="auth-label" for="reg-email">Correo electrónico</label>
           <input
             id="reg-email"
-            v-model="email.value"
+              :value="String(email.value || '')"
+              @input="email.setValue($event.target.value)"
             @blur="email.handleBlur"
             type="email"
             autocomplete="email"
             class="auth-input"
-            placeholder="daniela@ejemplo.com"
+              placeholder="Correo electrónico"
           />
           <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
+          </div>
         </div>
-      </section>
 
-      <section v-if="!stepMode || currentStep === 1" class="auth-fieldset">
+        <!-- Paso 2: Seguridad -->
+        <div v-if="!stepMode || currentStep === 1" class="auth-step">
         <div class="auth-field">
-          <label class="auth-label" for="reg-phone">Teléfono de contacto (opcional)</label>
           <input
             id="reg-phone"
-            v-model="phone.value"
+            :value="String(phone.value || '')"
+            @input="phone.setValue($event.target.value)"
             @blur="phone.handleBlur"
             type="tel"
             autocomplete="tel"
             class="auth-input"
-            placeholder="+51 900 000 000"
+              placeholder="Teléfono de contacto (opcional)"
           />
           <p v-if="phone.errorMessage" class="auth-error">{{ phone.errorMessage }}</p>
         </div>
 
         <div class="auth-field">
-          <label class="auth-label" for="reg-password">Crea una contraseña</label>
           <input
             id="reg-password"
-            v-model="password.value"
+            :value="String(password.value || '')"
+            @input="password.setValue($event.target.value)"
             @blur="password.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="auth-input"
-            placeholder="Mínimo 6 caracteres"
+              placeholder="Crea una contraseña (mínimo 6 caracteres)"
           />
           <p v-if="password.errorMessage" class="auth-error">{{ password.errorMessage }}</p>
         </div>
 
         <div class="auth-field">
-          <label class="auth-label" for="reg-password-confirm">Repite la contraseña</label>
           <input
             id="reg-password-confirm"
-            v-model="passwordConfirmation.value"
+            :value="String(passwordConfirmation.value || '')"
+            @input="passwordConfirmation.setValue($event.target.value)"
             @blur="passwordConfirmation.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="auth-input"
-            placeholder="Confirma tu contraseña"
+              placeholder="Repite la contraseña"
           />
           <p v-if="passwordConfirmation.errorMessage" class="auth-error">{{ passwordConfirmation.errorMessage }}</p>
-          <label class="auth-hint" style="display:flex; align-items:center; gap:0.5rem; font-weight:600;">
-            <input type="checkbox" v-model="showPassword" /> Mostrar contraseñas
+            <label class="auth-checkbox-label">
+              <input type="checkbox" v-model="showPassword" />
+              <span>Mostrar contraseñas</span>
           </label>
         </div>
-      </section>
+        </div>
 
-      <section v-if="!stepMode || currentStep === 2" class="auth-fieldset">
+        <!-- Paso 3: Credenciales/Personalización -->
+        <div v-if="!stepMode || currentStep === 2" class="auth-step">
         <template v-if="roleLabel === 'medico'">
-          <p class="auth-hint">Confirma tus credenciales para validar tu cuenta profesional.</p>
+            <div class="auth-step-header">
+              <h2 class="auth-step-title">Datos profesionales</h2>
+              <p class="auth-hint-text">Confirma tus credenciales para validar tu cuenta profesional. Todos los campos son obligatorios.</p>
+            </div>
+            
           <div class="auth-field">
-            <label class="auth-label" for="reg-id-doc-tipo">Tipo de documento de identidad</label>
-            <input
+              <label class="auth-label">Tipo de documento de identidad *</label>
+              <select
               id="reg-id-doc-tipo"
-              v-model="idDocTipo.value"
+              :value="String(idDocTipo.value || '')"
+              @change="idDocTipo.setValue($event.target.value)"
               @blur="idDocTipo.handleBlur"
-              type="text"
               class="auth-input"
-              placeholder="DNI / CE / Pasaporte"
-            />
+              >
+                <option value="">Selecciona el tipo</option>
+                <option value="DNI">DNI</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="PAS">Pasaporte</option>
+              </select>
             <p v-if="idDocTipo.errorMessage" class="auth-error">{{ idDocTipo.errorMessage }}</p>
           </div>
+            
           <div class="auth-field">
-            <label class="auth-label" for="reg-id-doc-numero">Número de documento</label>
+              <label class="auth-label">Número de documento *</label>
             <input
               id="reg-id-doc-numero"
-              v-model="idDocNumero.value"
+              :value="String(idDocNumero.value || '')"
+              @input="idDocNumero.setValue($event.target.value)"
               @blur="idDocNumero.handleBlur"
               type="text"
+                maxlength="32"
               class="auth-input"
               placeholder="Ej. 12345678"
             />
             <p v-if="idDocNumero.errorMessage" class="auth-error">{{ idDocNumero.errorMessage }}</p>
           </div>
+            
           <div class="auth-field">
-            <label class="auth-label" for="reg-lic-tipo">Tipo de licencia profesional</label>
-            <input
+              <label class="auth-label">Tipo de licencia profesional *</label>
+              <select
               id="reg-lic-tipo"
-              v-model="licTipo.value"
+              :value="String(licTipo.value || '')"
+              @change="licTipo.setValue($event.target.value)"
               @blur="licTipo.handleBlur"
-              type="text"
               class="auth-input"
-              placeholder="CMP / COP / Registro"
-            />
+              >
+                <option value="">Selecciona el tipo</option>
+                <option value="CMP">CMP (Colegio Médico del Perú)</option>
+                <option value="COP">COP (Colegio Odontológico del Perú)</option>
+                <option value="Registro">Registro Nacional</option>
+                <option value="Otro">Otro</option>
+              </select>
             <p v-if="licTipo.errorMessage" class="auth-error">{{ licTipo.errorMessage }}</p>
           </div>
+            
           <div class="auth-field">
-            <label class="auth-label" for="reg-lic-numero">Número de licencia</label>
+              <label class="auth-label">Número de licencia *</label>
             <input
               id="reg-lic-numero"
-              v-model="licNumero.value"
+              :value="String(licNumero.value || '')"
+              @input="licNumero.setValue($event.target.value)"
               @blur="licNumero.handleBlur"
               type="text"
+                maxlength="32"
               class="auth-input"
               placeholder="Ej. 12345"
             />
             <p v-if="licNumero.errorMessage" class="auth-error">{{ licNumero.errorMessage }}</p>
           </div>
+            
           <div class="auth-field">
-            <label class="auth-label" for="reg-lic-pais">País de expedición</label>
+              <label class="auth-label">País de expedición *</label>
             <input
               id="reg-lic-pais"
-              v-model="licPais.value"
+              :value="String(licPais.value || '')"
+              @input="handlePaisInput"
               @blur="licPais.handleBlur"
               type="text"
-              maxlength="4"
+                maxlength="2"
               class="auth-input"
-              placeholder="ISO (Ej. PE)"
+                placeholder="Código ISO (Ej: PE)"
+                style="text-transform: uppercase;"
             />
             <p v-if="licPais.errorMessage" class="auth-error">{{ licPais.errorMessage }}</p>
+              <p class="auth-hint-text">Ingresa el código de 2 letras del país (PE, CO, MX, etc.)</p>
           </div>
         </template>
         <template v-else>
-          <p class="auth-hint">Estos datos nos ayudan a personalizar tus citas (opcional).</p>
+            <p class="auth-hint-text">Estos datos nos ayudan a personalizar tus citas (opcional)</p>
           <div class="auth-field">
-            <label class="auth-label" for="reg-doc-tipo">Tipo de documento (opcional)</label>
             <input
               id="reg-doc-tipo"
-              v-model="docTipo.value"
+              :value="String(docTipo.value || '')"
+              @input="docTipo.setValue($event.target.value)"
               @blur="docTipo.handleBlur"
               type="text"
               class="auth-input"
-              placeholder="DNI / CE"
+                placeholder="Tipo de documento (opcional)"
             />
           </div>
           <div class="auth-field">
-            <label class="auth-label" for="reg-doc-numero">Número de documento (opcional)</label>
             <input
               id="reg-doc-numero"
-              v-model="docNumero.value"
+              :value="String(docNumero.value || '')"
+              @input="docNumero.setValue($event.target.value)"
               @blur="docNumero.handleBlur"
               type="text"
               class="auth-input"
-              placeholder="Ingresa solo números"
+                placeholder="Número de documento (opcional)"
             />
           </div>
           <div class="auth-field">
-            <label class="auth-label" for="reg-birthdate">Fecha de nacimiento (opcional)</label>
             <input
               id="reg-birthdate"
-              v-model="birthdate.value"
+              :value="String(birthdate.value || '')"
+              @input="birthdate.setValue($event.target.value)"
               @blur="birthdate.handleBlur"
               type="date"
               class="auth-input"
             />
           </div>
           <div class="auth-field">
-            <label class="auth-label" for="reg-gender">Género (opcional)</label>
-            <select id="reg-gender" v-model="gender.value" class="auth-select">
-              <option value="">Seleccionar</option>
+              <select id="reg-gender" :value="String(gender.value || '')" @change="gender.setValue($event.target.value)" class="auth-input">
+                <option value="">Género (opcional)</option>
               <option value="femenino">Femenino</option>
               <option value="masculino">Masculino</option>
               <option value="no-binario">No binario</option>
@@ -217,22 +256,14 @@
             </select>
           </div>
         </template>
-      </section>
-
-      <div class="auth-actions-secondary">
-        <button type="button" class="auth-secondary-link" @click="toggleStepMode">
-          {{ stepMode ? 'Ver todo en un solo paso' : 'Dividir en pasos guiados' }}
-        </button>
-        <RouterLink class="auth-secondary-link" :to="{ name: 'login', query: { email: email.value } }">
-          ¿Ya tienes cuenta? Inicia sesión
-        </RouterLink>
       </div>
 
-      <div class="auth-actions-secondary" v-if="stepMode">
+        <!-- Navegación de pasos -->
+        <div v-if="stepMode" class="auth-steps-nav">
         <button
           v-if="currentStep > 0"
           type="button"
-          class="auth-button auth-button--ghost"
+            class="auth-btn-secondary"
           @click="previousStep"
         >
           Volver
@@ -240,25 +271,39 @@
         <button
           v-if="currentStep < steps.length - 1"
           type="button"
-          class="auth-button"
+            class="auth-btn-primary"
           @click="goToNextStep"
         >
           Continuar
         </button>
       </div>
 
-      <button v-if="!stepMode || currentStep === steps.length - 1" class="auth-button" type="submit" :disabled="isSubmitting">
+        <!-- Botón de envío -->
+        <button
+          v-if="!stepMode || currentStep === steps.length - 1"
+          class="auth-submit"
+          type="submit"
+          :disabled="isSubmitting"
+        >
         <span v-if="isSubmitting">Creando tu cuenta…</span>
         <span v-else>Crear cuenta</span>
       </button>
+
+        <!-- Footer -->
+        <p class="auth-footer">
+          ¿Ya tienes cuenta?
+          <RouterLink class="auth-link" :to="{ name: 'login', query: { email: String(email.value || '') } }">
+            Iniciar sesión
+          </RouterLink>
+        </p>
     </form>
-  </AuthLayout>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AuthLayout from '../../layouts/AuthLayout.vue'
 import { useForm, useField, defineRule } from '@vee-validate/core'
 import { required, email as emailRule, min, max, confirmed, one_of as oneOf } from '@vee-validate/rules'
 import api from '../../../auth/api'
@@ -286,12 +331,20 @@ const showPassword = ref(false)
 
 const initialRole = typeof route.query.role === 'string' ? route.query.role : props.defaultRole
 
+// Función helper para obtener valores seguros de la query
+const getQueryValue = (key, defaultValue = '') => {
+  const value = route.query[key]
+  if (typeof value === 'string') return value
+  if (value == null) return defaultValue
+  return String(value)
+}
+
 const { handleSubmit, isSubmitting, setErrors } = useForm({
   initialValues: {
-    full_name: typeof route.query.name === 'string' ? route.query.name : '',
-    email: typeof route.query.email === 'string' ? route.query.email : '',
+    full_name: getQueryValue('name', ''),
+    email: getQueryValue('email', ''),
     phone: '',
-    role: initialRole,
+    role: String(initialRole),
     password: '',
     password_confirmation: '',
     doc_tipo: '',
@@ -324,11 +377,43 @@ const docNumero = useField('doc_numero')
 const birthdate = useField('birthdate')
 const gender = useField('gender')
 
-const idDocTipo = useField('id_doc_tipo', (value) => (roleLabel.value === 'medico' ? required(value) : true))
-const idDocNumero = useField('id_doc_numero', (value) => (roleLabel.value === 'medico' ? required(value) : true))
-const licTipo = useField('lic_tipo', (value) => (roleLabel.value === 'medico' ? required(value) : true))
-const licNumero = useField('lic_numero', (value) => (roleLabel.value === 'medico' ? required(value) : true))
-const licPais = useField('lic_pais', (value) => (roleLabel.value === 'medico' ? required(value) : true))
+// Validación condicional para campos de médico
+const idDocTipo = useField('id_doc_tipo', (value) => {
+  if (roleLabel.value !== 'medico') return true
+  if (!value || value.trim() === '') return 'El tipo de documento es obligatorio para especialistas'
+  if (value.length > 10) return 'Máximo 10 caracteres'
+  return true
+})
+
+const idDocNumero = useField('id_doc_numero', (value) => {
+  if (roleLabel.value !== 'medico') return true
+  if (!value || value.trim() === '') return 'El número de documento es obligatorio para especialistas'
+  if (value.length > 32) return 'Máximo 32 caracteres'
+  return true
+})
+
+const licTipo = useField('lic_tipo', (value) => {
+  if (roleLabel.value !== 'medico') return true
+  if (!value || value.trim() === '') return 'El tipo de licencia es obligatorio para especialistas'
+  if (value.length > 16) return 'Máximo 16 caracteres'
+  return true
+})
+
+const licNumero = useField('lic_numero', (value) => {
+  if (roleLabel.value !== 'medico') return true
+  if (!value || value.trim() === '') return 'El número de licencia es obligatorio para especialistas'
+  if (value.length > 32) return 'Máximo 32 caracteres'
+  return true
+})
+
+const licPais = useField('lic_pais', (value) => {
+  if (roleLabel.value !== 'medico') return true
+  if (!value || value.trim() === '') return 'El país de expedición es obligatorio para especialistas'
+  const trimmed = value.trim().toUpperCase()
+  if (trimmed.length !== 2) return 'Debe ser un código ISO de 2 letras (Ej: PE, CO, MX)'
+  if (!/^[A-Z]{2}$/.test(trimmed)) return 'Solo se permiten letras (código ISO)'
+  return true
+})
 
 const stepMode = ref(true)
 const currentStep = ref(0)
@@ -349,9 +434,13 @@ watch(roleLabel, (value) => {
     currentStep.value = steps.value.length - 1
   }
   backendIssue.value = null
+  
+  // Limpiar campos del otro rol cuando se cambia
   if (value === 'medico') {
     docTipo.setValue('')
     docNumero.setValue('')
+    birthdate.setValue('')
+    gender.setValue('')
   } else {
     idDocTipo.setValue('')
     idDocNumero.setValue('')
@@ -359,7 +448,18 @@ watch(roleLabel, (value) => {
     licNumero.setValue('')
     licPais.setValue('')
   }
-})
+}, { immediate: false })
+
+const selectRole = (roleValue) => {
+  if (role.value.value !== roleValue) {
+    role.setValue(String(roleValue))
+  }
+}
+
+const handlePaisInput = (event) => {
+  const value = String(event.target.value || '').toUpperCase().replace(/[^A-Z]/g, '')
+  licPais.setValue(value)
+}
 
 const toggleStepMode = () => {
   stepMode.value = !stepMode.value
@@ -495,27 +595,324 @@ const onSubmit = handleSubmit(async (formValues, helpers) => {
     }
   }
 })
-
-const layoutMessage = computed(() => {
-  if (backendIssue.value) return backendIssue.value
-  return {
-    variant: roleLabel.value === 'medico' ? 'info' : 'success',
-    title: roleLabel.value === 'medico' ? 'Expande tu consulta digital' : 'Tu salud en un mismo lugar',
-    body:
-      roleLabel.value === 'medico'
-        ? 'Completa tus datos de colegiatura para aparecer en los listados y recibir pacientes verificados.'
-        : 'Comparte algunos datos opcionales para recibir recordatorios personalizados y recomendaciones.',
-  }
-})
-
-const stepCopy = computed(() => {
-  if (!stepMode.value) return ''
-  const labels = {
-    perfil: 'Paso 1 de 3 — Cuéntanos sobre ti',
-    seguridad: 'Paso 2 de 3 — Configura tu acceso seguro',
-    credenciales: 'Paso 3 de 3 — Verificamos tu ejercicio profesional',
-    personalizacion: 'Paso 3 de 3 — Personaliza tus recordatorios',
-  }
-  return labels[steps.value[currentStep]?.id] ?? ''
-})
 </script>
+
+<style scoped>
+/* Contenedor principal - estilo Doctoralia */
+.doctoralia-auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: #ffffff;
+}
+
+/* Logo */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  cursor: pointer;
+}
+
+.auth-logo__icon {
+  font-size: 1.75rem;
+}
+
+.auth-logo__text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff006e, #8338ec, #00f5ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Contenedor del formulario */
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+}
+
+/* Selector de rol (cards estilo Doctoralia) */
+.auth-role-selector {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-role-option {
+  display: block;
+  cursor: pointer;
+}
+
+.auth-role-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-role-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.auth-role-option.is-selected .auth-role-card {
+  border-color: #8338ec;
+  background: rgba(131, 56, 236, 0.05);
+}
+
+.auth-role-option:hover .auth-role-card {
+  border-color: #d1d5db;
+}
+
+.auth-role-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.auth-role-content h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.auth-role-content p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.auth-role-notice {
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  background: rgba(131, 56, 236, 0.08);
+  border: 1px solid rgba(131, 56, 236, 0.2);
+  border-radius: 8px;
+}
+
+.auth-role-notice p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.auth-step-header {
+  margin-bottom: 1rem;
+}
+
+.auth-step-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.auth-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Campos */
+.auth-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 1rem;
+  color: #111827;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-input::placeholder {
+  color: #9ca3af;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #8338ec;
+  box-shadow: 0 0 0 3px rgba(131, 56, 236, 0.1);
+}
+
+.auth-input[type="date"],
+.auth-input[type="select"],
+select.auth-input {
+  cursor: pointer;
+}
+
+.auth-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.auth-hint-text {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.auth-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.auth-checkbox-label input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Navegación de pasos */
+.auth-steps-nav {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.auth-btn-secondary {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-btn-secondary:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.auth-btn-primary {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #ff006e, #8338ec);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(131, 56, 236, 0.4);
+}
+
+/* Botón de envío */
+.auth-submit {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #ff006e, #8338ec);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(131, 56, 236, 0.4);
+}
+
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Footer */
+.auth-footer {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.auth-link {
+  color: #8338ec;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+  color: #ff006e;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .doctoralia-auth {
+    padding: 1.5rem 1rem;
+  }
+
+  .auth-logo {
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-title {
+    font-size: 1.5rem;
+  }
+
+  .auth-role-card {
+    padding: 1rem;
+  }
+}
+</style>
