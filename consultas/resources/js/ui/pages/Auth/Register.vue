@@ -4,7 +4,7 @@
     <div class="auth-logo">
       <span class="auth-logo__icon">⚡</span>
       <span class="auth-logo__text">MediReserva</span>
-      </div>
+        </div>
 
     <!-- Formulario centrado -->
     <div class="auth-container">
@@ -15,7 +15,7 @@
         <div v-if="successMessage" class="auth-message auth-message--success">
           <strong>¡Cuenta creada exitosamente! 🎉</strong>
           <p>{{ successMessage }}</p>
-        </div>
+      </div>
 
         <!-- Selección de tipo de cuenta (solo en paso 1) -->
         <div v-if="!stepMode || currentStep === 0" class="auth-role-selector">
@@ -27,7 +27,7 @@
                 <h3>Soy paciente</h3>
                 <p>Comparte información básica con tu especialista antes de la visita</p>
               </div>
-            </div>
+      </div>
             </label>
 
           <label class="auth-role-option" :class="{ 'is-selected': roleLabel === 'medico' }" @click="selectRole('medico')">
@@ -37,7 +37,7 @@
               <div class="auth-role-content">
                 <h3>Soy especialista</h3>
                 <p>Consigue que tus pacientes te conozcan, confíen en ti y reserven contigo</p>
-              </div>
+          </div>
             </div>
             </label>
           <p v-if="role.errorMessage" class="auth-error">{{ role.errorMessage }}</p>
@@ -78,7 +78,7 @@
             placeholder="Correo electrónico"
           />
           <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
-          </div>
+        </div>
         </div>
 
         <!-- Paso 2: Seguridad -->
@@ -259,7 +259,7 @@
               id="reg-birthdate"
               name="birthdate"
               :value="getFieldValue(birthdate)"
-              @input="birthdate.setValue($event.target.value)"
+              @change="birthdate.setValue($event.target.value)"
               @blur="birthdate.handleBlur"
               type="date"
               class="auth-input"
@@ -374,7 +374,7 @@ const getQueryValue = (key, defaultValue = '') => {
   return String(value)
 }
 
-const { handleSubmit, isSubmitting, setErrors } = useForm({
+const { handleSubmit, isSubmitting, setErrors, values: formValuesReactive } = useForm({
   initialValues: {
     full_name: getQueryValue('name', ''),
     email: getQueryValue('email', ''),
@@ -498,6 +498,61 @@ const handlePaisInput = (event) => {
   licPais.setValue(value)
 }
 
+// Watchers para asegurar que los valores se sincronicen con el formulario reactivo
+watch(() => email.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.email = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => fullName.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.full_name = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => password.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.password = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => passwordConfirmation.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.password_confirmation = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => phone.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.phone = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => docTipo.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.doc_tipo = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => docNumero.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.doc_numero = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => birthdate.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.birthdate = String(newVal)
+  }
+}, { immediate: true })
+
+watch(() => gender.value?.value, (newVal) => {
+  if (formValuesReactive && newVal !== undefined && newVal !== null) {
+    formValuesReactive.gender = String(newVal)
+  }
+}, { immediate: true })
+
 const toggleStepMode = () => {
   stepMode.value = !stepMode.value
   if (!stepMode.value) {
@@ -594,17 +649,35 @@ const onSubmit = handleSubmit(async (formValues, helpers) => {
   
   try {
     // Obtener valores directamente de los campos (más confiable que formValues)
-    const fullNameValue = normalizeString(getFieldValue(fullName) || '')
-    const emailValue = normalizeString(getFieldValue(email) || '')
-    const passwordValue = getFieldValue(password) || ''
-    const passwordConfValue = getFieldValue(passwordConfirmation) || ''
-    const roleValue = normalizeString(getFieldValue(role) || 'paciente')
+    // Para email, usar el valor actual del campo, no el de formValues que puede estar desactualizado
+    const fullNameFromField = fullName?.value?.value ?? ''
+    const emailFromField = email?.value?.value ?? ''
+    const passwordFromField = password?.value?.value ?? ''
+    const passwordConfFromField = passwordConfirmation?.value?.value ?? ''
+    const roleFromField = role?.value?.value ?? ''
+    
+    // También intentar desde formValuesReactive como fallback
+    const fullNameFromReactive = formValuesReactive?.full_name ?? ''
+    const emailFromReactive = formValuesReactive?.email ?? ''
+    const passwordFromReactive = formValuesReactive?.password ?? ''
+    const passwordConfFromReactive = formValuesReactive?.password_confirmation ?? ''
+    const roleFromReactive = formValuesReactive?.role ?? ''
+    
+    // Usar el valor del campo si existe, sino del objeto reactivo
+    const fullNameValue = normalizeString(fullNameFromField || fullNameFromReactive || '')
+    const emailValue = normalizeString(emailFromField || emailFromReactive || '')
+    const passwordValue = passwordFromField || passwordFromReactive || ''
+    const passwordConfValue = passwordConfFromField || passwordConfFromReactive || ''
+    const roleValue = normalizeString(roleFromField || roleFromReactive || 'paciente')
     
     console.log('📋 Valores obtenidos de los campos:', {
       fullNameValue,
       emailValue,
       passwordValue: passwordValue ? '***' : '',
-      roleValue
+      roleValue,
+      'email (field)': emailFromField,
+      'email (reactive)': emailFromReactive,
+      'email (formValues)': formValues?.email,
     })
     
     if (!fullNameValue || fullNameValue.trim() === '') {
@@ -701,81 +774,158 @@ const onSubmit = handleSubmit(async (formValues, helpers) => {
         lic_pais: licPaisValue,
       })
     } else {
-      Object.assign(payload, {
-        doc_tipo: emptyToNull(getFieldValue(docTipo)),
-        doc_numero: emptyToNull(getFieldValue(docNumero)),
-        birthdate: emptyToNull(getFieldValue(birthdate)),
-        gender: emptyToNull(getFieldValue(gender)),
+      // Obtener valores directamente de los campos para paciente
+      // Primero intentar desde el objeto reactivo del formulario (más confiable)
+      const docTipoFromReactive = formValuesReactive?.doc_tipo ?? ''
+      const docNumeroFromReactive = formValuesReactive?.doc_numero ?? ''
+      const birthdateFromReactive = formValuesReactive?.birthdate ?? ''
+      const genderFromReactive = formValuesReactive?.gender ?? ''
+      
+      // También intentar desde formValues (pasado por handleSubmit)
+      const docTipoFromForm = formValues?.doc_tipo ?? ''
+      const docNumeroFromForm = formValues?.doc_numero ?? ''
+      const birthdateFromForm = formValues?.birthdate ?? ''
+      const genderFromForm = formValues?.gender ?? ''
+      
+      // Acceder directamente al ref value del campo como último recurso
+      const docTipoFromField = docTipo?.value?.value ?? ''
+      const docNumeroFromField = docNumero?.value?.value ?? ''
+      const birthdateFromField = birthdate?.value?.value ?? ''
+      const genderFromField = gender?.value?.value ?? ''
+      
+      // Usar el valor del objeto reactivo si existe, sino del formValues, sino del campo
+      const docTipoFinal = docTipoFromReactive || docTipoFromForm || docTipoFromField
+      const docNumeroFinal = docNumeroFromReactive || docNumeroFromForm || docNumeroFromField
+      const birthdateFinal = birthdateFromReactive || birthdateFromForm || birthdateFromField
+      const genderFinal = genderFromReactive || genderFromForm || genderFromField
+      
+      const docTipoValue = emptyToNull(docTipoFinal)
+      const docNumeroValue = emptyToNull(docNumeroFinal)
+      const birthdateValue = emptyToNull(birthdateFinal)
+      const genderValue = emptyToNull(genderFinal)
+      
+      console.log('📋 Valores de campos de paciente:', {
+        docTipoValue,
+        docNumeroValue,
+        birthdateValue,
+        genderValue,
+        'docTipo (reactive)': docTipoFromReactive,
+        'docTipo (form)': docTipoFromForm,
+        'docTipo (field)': docTipoFromField,
+        'birthdate (reactive)': birthdateFromReactive,
+        'birthdate (form)': birthdateFromForm,
+        'birthdate (field)': birthdateFromField,
+        'gender (reactive)': genderFromReactive,
+        'gender (form)': genderFromForm,
+        'gender (field)': genderFromField,
       })
+      
+      console.log('📝 Agregando campos de paciente al payload...')
+      Object.assign(payload, {
+        doc_tipo: docTipoValue,
+        doc_numero: docNumeroValue,
+        birthdate: birthdateValue,
+        gender: genderValue,
+      })
+      console.log('✅ Campos de paciente agregados al payload')
     }
+
+    console.log('✅ Bloque de construcción de payload completado')
+    console.log('📦 Payload actual:', payload)
 
     // Debug: mostrar qué se está enviando (puedes quitar esto después)
+    console.log('📦 Construyendo payload final...')
+    console.log('📦 Payload antes de enviar:', payload)
     console.log('Enviando payload:', JSON.stringify(payload, null, 2))
     console.log('📡 Endpoint:', endpoint)
+    console.log('🔍 Payload keys:', Object.keys(payload))
+    console.log('🔍 Payload completo:', payload)
 
-    const { data } = await api.post(endpoint, payload)
+    try {
+      console.log('🚀 Iniciando petición al backend...')
+      const { data } = await api.post(endpoint, payload)
+      console.log('✅ Respuesta recibida del backend')
     
-    console.log('✅ Respuesta del backend:', data)
-    console.log('👤 Roles recibidos:', data?.roles)
+      console.log('✅ Respuesta del backend:', data)
+      console.log('👤 Roles recibidos:', data?.roles)
 
-    // Mostrar mensaje de éxito
-    successMessage.value = `¡Bienvenido${roleValue === 'medico' ? ', especialista' : ''}! Tu cuenta ha sido creada exitosamente. Redirigiendo...`
-    
-    // Scroll al inicio para que el usuario vea el mensaje
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+      if (!data || !data.token) {
+        console.error('❌ Error: La respuesta del backend no contiene token')
+        throw new Error('La respuesta del servidor no contiene un token válido')
+      }
 
-    // IMPORTANTE: Limpiar TODO el estado anterior antes de guardar el nuevo
-    auth.clear()
-    sessionStorage.removeItem('whoami_ok')
-    sessionStorage.removeItem('whoami_token')
-    
-    // Limpiar también tokens viejos que puedan estar en localStorage
-    ;['token', 'auth_token', 'access_token', 'user_name', 'roles'].forEach(k => {
-      localStorage.removeItem(k)
-      sessionStorage.removeItem(k)
-    })
+      // Mostrar mensaje de éxito INMEDIATAMENTE
+      successMessage.value = `¡Bienvenido${roleValue === 'medico' ? ', especialista' : ''}! Tu cuenta ha sido creada exitosamente. Redirigiendo...`
+      console.log('✅ Mensaje de éxito establecido:', successMessage.value)
+      
+      // Scroll al inicio para que el usuario vea el mensaje
+      window.scrollTo({ top: 0, behavior: 'smooth' })
 
-    if (!api.defaults.headers.common) api.defaults.headers.common = {}
-    api.defaults.headers.common.Authorization = `Bearer ${data.token}`
+      // IMPORTANTE: Limpiar TODO el estado anterior antes de guardar el nuevo
+      auth.clear()
+      sessionStorage.removeItem('whoami_ok')
+      sessionStorage.removeItem('whoami_token')
+      
+      // Limpiar también tokens viejos que puedan estar en localStorage
+      ;['token', 'auth_token', 'access_token', 'user_name', 'roles'].forEach(k => {
+        localStorage.removeItem(k)
+        sessionStorage.removeItem(k)
+      })
 
-    // Obtener el nombre y roles del usuario desde la respuesta
-    const userName = data?.user?.name || ''
-    const userRoles = Array.isArray(data.roles) ? data.roles : []
+      if (!api.defaults.headers.common) api.defaults.headers.common = {}
+      api.defaults.headers.common.Authorization = `Bearer ${data.token}`
 
-    // Guardar la nueva sesión en el store centralizado
-    auth.persistSession({
-      token: data.token,
-      roles: userRoles,
-      name: userName,
-      remember: true,
-    })
-    
-    // IMPORTANTE: Marcar el cache como válido INMEDIATAMENTE después del registro
-    // para evitar que el router guard lo sobrescriba
-    sessionStorage.setItem('whoami_ok', '1')
-    sessionStorage.setItem('whoami_token', data.token)
-    
-    console.log('💾 Token guardado después del registro:', data.token ? 'Sí' : 'No')
-    console.log('💾 Nombre guardado:', userName)
-    console.log('💾 Roles guardados:', userRoles)
-    console.log('💾 Cache de usuario marcado como válido')
+      // Obtener el nombre y roles del usuario desde la respuesta
+      const userName = data?.user?.name || ''
+      const userRoles = Array.isArray(data.roles) ? data.roles : []
 
-    // Esperar 2 segundos para que el usuario vea el mensaje de éxito antes de redirigir
-    await new Promise(resolve => setTimeout(resolve, 2000))
+      // Guardar la nueva sesión en el store centralizado
+      auth.persistSession({
+        token: data.token,
+        roles: userRoles,
+        name: userName,
+        remember: true,
+      })
+      
+      // IMPORTANTE: Marcar el cache como válido INMEDIATAMENTE después del registro
+      // para evitar que el router guard lo sobrescriba
+      sessionStorage.setItem('whoami_ok', '1')
+      sessionStorage.setItem('whoami_token', data.token)
+      
+      console.log('💾 Token guardado después del registro:', data.token ? 'Sí' : 'No')
+      console.log('💾 Nombre guardado:', userName)
+      console.log('💾 Roles guardados:', userRoles)
+      console.log('💾 Cache de usuario marcado como válido')
 
-    // Verificar roles después de guardarlos
-    const savedRoles = auth.roles || []
-    const isMedico = Array.isArray(savedRoles) && savedRoles.includes('medico')
-    
-    console.log('🔐 Roles guardados:', savedRoles)
-    console.log('👨‍⚕️ Es médico?', isMedico)
-    
-    if (isMedico) {
-      await router.replace({ name: 'medico.home' })
-    } else {
-      await router.replace({ name: 'paciente.home' })
+      // Esperar 2 segundos para que el usuario vea el mensaje de éxito antes de redirigir
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      // Verificar roles después de guardarlos
+      const savedRoles = auth.roles || []
+      const isMedico = Array.isArray(savedRoles) && savedRoles.includes('medico')
+      
+      console.log('🔐 Roles guardados:', savedRoles)
+      console.log('👨‍⚕️ Es médico?', isMedico)
+      
+      if (isMedico) {
+        console.log('🔄 Redirigiendo a médico.home...')
+        await router.replace({ name: 'medico.home' })
+      } else {
+        console.log('🔄 Redirigiendo a paciente.home...')
+        await router.replace({ name: 'paciente.home' })
+      }
+    } catch (apiError) {
+      console.error('❌ Error en la petición API:', apiError)
+      throw apiError // Re-lanzar para que sea capturado por el catch externo
     }
   } catch (error) {
+    console.error('❌ Error capturado en onSubmit:', error)
+    console.error('❌ Error completo:', {
+      message: error?.message,
+      response: error?.response,
+      stack: error?.stack
+    })
+    
     successMessage.value = '' // Limpiar mensaje de éxito si hay error
     const response = error?.response?.data
     console.error('Error del backend:', response)
