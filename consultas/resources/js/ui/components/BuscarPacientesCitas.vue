@@ -133,6 +133,14 @@
                 </div>
                 <div class="paciente-card-actions">
                   <button 
+                    class="btn-action btn-ver-detalle"
+                    @mousedown.prevent="verDetallePaciente(paciente)"
+                    title="Ver información completa del paciente"
+                  >
+                    <span class="btn-icon">👁️</span>
+                    <span>Ver Detalles</span>
+                  </button>
+                  <button 
                     class="btn-action btn-ver-citas"
                     @mousedown.prevent="selectPaciente(paciente)"
                     title="Ver todas las citas de este paciente"
@@ -262,6 +270,13 @@
         </div>
       </div>
     </transition>
+
+    <!-- Modal de Detalle de Paciente -->
+    <PacienteDetalleModal
+      :visible="pacienteDetalleModal.visible"
+      :paciente-id="pacienteDetalleModal.pacienteId"
+      @close="cerrarDetallePaciente"
+    />
   </div>
 </template>
 
@@ -269,6 +284,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../../services/api'
+import PacienteDetalleModal from './PacienteDetalleModal.vue'
 
 const router = useRouter()
 
@@ -281,6 +297,10 @@ const medicos = ref([])
 const especialidades = ref([])
 const resultsVisible = ref(false)
 const searchTimeout = ref(null)
+const pacienteDetalleModal = ref({
+  visible: false,
+  pacienteId: null,
+})
 
 // Debounce manual para la búsqueda
 async function performSearch(query) {
@@ -391,6 +411,16 @@ function selectPaciente(paciente) {
   // Filtrar citas por este paciente
   searchQuery.value = paciente.nombre
   performSearch(paciente.nombre)
+}
+
+function verDetallePaciente(paciente) {
+  pacienteDetalleModal.value.pacienteId = paciente.id
+  pacienteDetalleModal.value.visible = true
+}
+
+function cerrarDetallePaciente() {
+  pacienteDetalleModal.value.visible = false
+  pacienteDetalleModal.value.pacienteId = null
 }
 
 function selectMedico(medico) {
@@ -1077,6 +1107,33 @@ const vClickOutside = {
   gap: 8px;
   padding-top: 12px;
   border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.btn-ver-detalle {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(127,59,243,0.3);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(127,59,243,0.15);
+  color: #a78bfa;
+}
+
+.btn-ver-detalle:hover {
+  background: rgba(127,59,243,0.25);
+  border-color: rgba(127,59,243,0.5);
+  transform: translateY(-1px);
+}
+
+.btn-ver-detalle .btn-icon {
+  font-size: 16px;
 }
 
 .btn-ver-citas {

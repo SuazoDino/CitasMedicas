@@ -25,6 +25,7 @@
       <div v-if="menuOpen" class="mr-menu">
         <a @click.prevent="$router.push('/medico')">Mi panel</a>
         <a @click.prevent="$router.push('/medico/perfil')">Perfil</a>
+        <a @click.prevent="$router.push('/medico/notificaciones')">Notificaciones</a>
         <hr />
         <a @click.prevent="logout">Salir</a>
       </div>
@@ -34,11 +35,12 @@
   <!-- CONTENIDO -->
   <section class="page-slot">
     <div class="container">
-      <!-- WELCOME -->
-      <div class="welcome-section">
-        <div class="welcome-content">
+      <!-- TOP SECTION: Welcome + Date Selector -->
+      <div class="top-section">
+        <!-- WELCOME -->
+        <div class="welcome-section">
           <div class="welcome-header">
-            <div>
+            <div class="welcome-title-group">
               <h1>¡Hola, {{ doctorName }}! <span class="wave-emoji">👋</span></h1>
               <div class="welcome-meta">
                 <span class="role-badge">
@@ -51,65 +53,38 @@
                 </span>
               </div>
             </div>
-          </div>
-          <div class="welcome-stats">
-            <div class="welcome-stat-item">
-              <div class="stat-icon-wrapper stat-primary">
-                <span class="stat-icon">📅</span>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ totalHoy }}</div>
-                <div class="stat-desc">Citas hoy</div>
-              </div>
-            </div>
-            <div class="welcome-stat-item">
-              <div class="stat-icon-wrapper stat-warning">
-                <span class="stat-icon">⏳</span>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ pendientesHoy }}</div>
-                <div class="stat-desc">Pendientes</div>
-              </div>
-            </div>
-            <div class="welcome-stat-item">
-              <div class="stat-icon-wrapper stat-success">
-                <span class="stat-icon">✅</span>
-              </div>
-              <div class="stat-content">
-                <div class="stat-number">{{ confirmadasHoy }}</div>
-                <div class="stat-desc">Confirmadas</div>
-              </div>
+            <div class="welcome-actions">
+              <button class="btn-primary-action" @click="goHorarios">
+                <span class="btn-icon">⚙️</span>
+                <span>Configurar Horarios</span>
+              </button>
+              <button class="btn-secondary-action" @click="cargarAgenda" :disabled="loading">
+                <span v-if="loading" class="btn-spinner">⏳</span>
+                <span v-else class="btn-icon">⟳</span>
+                <span>{{ loading ? 'Actualizando…' : 'Refrescar' }}</span>
+              </button>
             </div>
           </div>
         </div>
-        <div class="welcome-actions">
-          <button class="btn-primary-action" @click="goHorarios">
-            <span class="btn-icon">⚙️</span>
-            <span>Configurar Horarios</span>
-          </button>
-          <button class="btn-secondary-action" @click="cargarAgenda" :disabled="loading">
-            <span v-if="loading" class="btn-spinner">⏳</span>
-            <span v-else class="btn-icon">⟳</span>
-            <span>{{ loading ? 'Actualizando…' : 'Refrescar' }}</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- DATE SELECTOR -->
-      <div class="date-selector-section">
-        <label class="date-label">
-          <span class="label-icon">📅</span>
-          <span>Ver citas del día:</span>
-        </label>
-        <input
-          type="date"
-          v-model="fechaSeleccionada"
-          @change="cambiarFecha"
-          class="date-input"
-        />
-        <button class="btn-today" @click="irAHoy" title="Ir a hoy">
-          <span>Hoy</span>
-        </button>
+        <!-- DATE SELECTOR -->
+        <div class="date-selector-section">
+          <div class="date-selector-content">
+            <label class="date-label">
+              <span class="label-icon">📅</span>
+              <span>Ver citas del día:</span>
+            </label>
+            <input
+              type="date"
+              v-model="fechaSeleccionada"
+              @change="cambiarFecha"
+              class="date-input"
+            />
+            <button class="btn-today" @click="irAHoy" title="Ir a hoy">
+              <span>Hoy</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- QUICK STATS -->
@@ -424,6 +399,17 @@ function formatVerifStatus(status) {
 async function accion(id, tipo){
   const path = { confirmar:'confirmar', completar:'completar', cancelar:'cancelar' }[tipo]
   if (!path) return
+  
+  // Confirmaciones antes de acciones críticas
+  let confirmar = true
+  if (tipo === 'cancelar') {
+    confirmar = confirm('¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.')
+  } else if (tipo === 'completar') {
+    confirmar = confirm('¿Confirmas que esta cita ha sido completada?')
+  }
+  
+  if (!confirmar) return
+  
   busyId.value = id
   try {
     await axios.post(`/api/medico/citas/${id}/${path}`)
@@ -471,30 +457,47 @@ onMounted(async ()=>{
   position:sticky; top:0; z-index:30;
   background: linear-gradient(180deg, rgba(10,1,24,.92) 0%, rgba(10,1,24,.92) 70%, rgba(10,1,24,.92) 100%);
   backdrop-filter: blur(8px);
-  height: 100px;
   border-bottom: 1px solid rgba(255,255,255,.06);
-  padding: 10px 0 14px;
+  padding: 16px 0;
   margin-bottom: 10px;
 }
 .mr-dh{
   max-width: 1400px; margin: 0 auto; padding: 0 24px;
-  display:flex; align-items:center; gap:16px; position:relative;
-  margin-top: 20px;
+  display:grid; 
+  grid-template-columns: auto 1fr auto;
+  align-items:center; 
+  gap:16px; 
+  position:relative;
+  height: 100%;
 }
-.mr-brand{ display:flex; align-items:center; gap:10px; white-space:nowrap }
+.mr-brand{ 
+  display:flex; 
+  align-items:center; 
+  gap:10px; 
+  white-space:nowrap;
+  flex-shrink: 0;
+}
 .mr-bolt{ font-size:20px }
 .mr-word{
   font-size:22px; font-weight:900;
   background: linear-gradient(135deg,#ff2a88 0%, #7f3bf3 45%, #00e5ff 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-/* Buscador - ahora usa el componente BuscarMedicos */
+/* Buscador - ahora usa el componente BuscarPacientesCitas */
+.mr-dh > :nth-child(2) {
+  width: 100%;
+  max-width: 600px;
+  justify-self: center;
+}
 .mr-userpill{
   display:flex; align-items:center; gap:12px;
   height: 44px; padding: 6px 14px; cursor: pointer;
   border:1px solid rgba(255,255,255,.16); border-radius: 999px;
   background: rgba(255,255,255,.06); color:#fff;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+  flex-shrink: 0;
 }
 .mr-avatar{
   width:32px; height:32px; border-radius:50%;
@@ -520,32 +523,44 @@ onMounted(async ()=>{
 /* ===================== */
 /* == CONTENIDO (UI)  == */
 /* ===================== */
+.top-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .welcome-section{
-  display:flex; align-items:flex-start; justify-content:space-between; gap:24px;
-  padding: 28px 32px; margin-bottom: 24px;
+  padding: 24px 28px;
   background: linear-gradient(135deg, rgba(127,59,243,0.15) 0%, rgba(255,42,136,0.1) 100%);
   border:1px solid rgba(255,255,255,.12);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 10px 40px rgba(127,59,243,.2);
   animation: fadeIn 0.5s ease-out;
 }
 
-.welcome-content {
-  flex: 1;
-}
-
 .welcome-header {
-  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.welcome-content h1{ 
-  font-size:32px; 
+.welcome-title-group {
+  flex: 1;
+  min-width: 280px;
+}
+
+.welcome-title-group h1{ 
+  font-size:28px; 
   font-weight:900; 
-  margin:0 0 12px 0;
+  margin:0 0 10px 0;
   background: linear-gradient(135deg, #fff, #a78bfa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  line-height: 1.2;
 }
 
 .wave-emoji {
@@ -562,8 +577,9 @@ onMounted(async ()=>{
 .welcome-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .role-badge {
@@ -616,75 +632,13 @@ onMounted(async ()=>{
   font-size: 14px;
 }
 
-.welcome-stats {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.welcome-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  flex: 1;
-  min-width: 140px;
-}
-
-.stat-icon-wrapper {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-icon-wrapper.stat-primary {
-  background: rgba(59,130,246,0.15);
-  border: 1px solid rgba(59,130,246,0.3);
-}
-
-.stat-icon-wrapper.stat-warning {
-  background: rgba(251,191,36,0.15);
-  border: 1px solid rgba(251,191,36,0.3);
-}
-
-.stat-icon-wrapper.stat-success {
-  background: rgba(34,197,94,0.15);
-  border: 1px solid rgba(34,197,94,0.3);
-}
-
-.stat-icon {
-  font-size: 20px;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 20px;
-  font-weight: 700;
-  color: rgba(234,246,255,0.98);
-  line-height: 1.2;
-}
-
-.stat-desc {
-  font-size: 12px;
-  color: rgba(234,246,255,0.6);
-  margin-top: 2px;
-}
 
 .welcome-actions{ 
   display:flex; 
-  gap:12px; 
+  gap:10px; 
   flex-wrap:wrap;
   flex-shrink: 0;
+  align-items: flex-start;
 }
 
 .btn-primary-action{
@@ -742,14 +696,17 @@ onMounted(async ()=>{
 
 /* Date Selector */
 .date-selector-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
   padding: 16px 20px;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
+}
+
+.date-selector-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .date-label {
@@ -1333,24 +1290,53 @@ onMounted(async ()=>{
 
 @media (max-width: 900px){
   .quick-stats{ grid-template-columns:repeat(2,minmax(0,1fr)) }
-  .welcome-section{ flex-direction:column; align-items:flex-start }
+  
+  .welcome-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .welcome-title-group {
+    min-width: 100%;
+    margin-bottom: 16px;
+  }
+  
   .welcome-actions {
     width: 100%;
   }
+  
   .welcome-actions button {
     flex: 1;
+    min-width: 140px;
   }
+  
+  .date-selector-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-label {
+    width: 100%;
+  }
+  
+  .date-input {
+    width: 100%;
+  }
+  
+  .btn-today {
+    width: 100%;
+  }
+  
   .filter-tabs {
     flex-direction: column;
   }
+  
   .filter-tab {
     width: 100%;
   }
-  .welcome-stats {
-    flex-direction: column;
-  }
-  .welcome-stat-item {
-    width: 100%;
+  
+  .quick-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

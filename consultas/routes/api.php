@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosControll
 use App\Http\Controllers\Api\Medico\EspecialidadesController as MedicoEspecialidadesController;
 use App\Http\Controllers\Api\Paciente\PerfilController as PacientePerfilController;
 use App\Http\Controllers\Api\Paciente\RatingController as PacienteRatingController;
+use App\Http\Controllers\Api\Medico\PacienteController as MedicoPacienteController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -76,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         Route::get('notificaciones/preferencias', [NotificationPreferenceController::class, 'getMedico']);
         Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updateMedico']);
+        Route::get('pacientes/{id}', [MedicoPacienteController::class, 'show']);
     });
 });
 
