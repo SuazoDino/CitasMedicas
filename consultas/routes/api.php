@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\MedicoSlotsController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosController;
 use App\Http\Controllers\Api\Medico\EspecialidadesController as MedicoEspecialidadesController;
+use App\Http\Controllers\Api\Paciente\PerfilController as PacientePerfilController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -37,6 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('paciente')->group(function () {
         Route::get('resumen', [PacienteDashboardController::class, 'resumen']);
+        Route::get('perfil', [PacientePerfilController::class, 'index']);
+        Route::put('perfil', [PacientePerfilController::class, 'update']);
+        Route::patch('perfil', [PacientePerfilController::class, 'update']);
         Route::get('citas/proximas', [PacienteCitasController::class, 'proximas']);
         Route::post('citas',         [PacienteCitasController::class, 'store']);
         Route::put('citas/{id}',     [PacienteCitasController::class, 'update']);
@@ -46,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('medico')->group(function () {
         Route::get('citas',                [MedicoCitasController::class, 'delDia']);
+        Route::get('citas/search',          [\App\Http\Controllers\Api\Medico\CitasController::class, 'search']);
         Route::post('citas/{id}/confirmar', [MedicoCitasController::class, 'confirmar']);
         Route::post('citas/{id}/cancelar',  [MedicoCitasController::class, 'cancelar']);
         Route::post('citas/{id}/completar', [MedicoCitasController::class, 'completar']);

@@ -16,6 +16,7 @@ import LandingRoute  from '../ui/pages/LandingRoute.vue'
 import MedicoHorarios from '../ui/pages/MedicoHorarios.vue'
 import MedicoPerfil from '../ui/pages/MedicoPerfil.vue'
 import MedicoPerfilPublico from '../ui/pages/MedicoPerfilPublico.vue'
+import PacientePerfil from '../ui/pages/PacientePerfil.vue'
 // --- rutas (mismas que enviaste) ---
 const routes = [
   {
@@ -80,6 +81,12 @@ const routes = [
         path: 'paciente',
         name: 'paciente.home',
         component: PacienteHome,
+        meta: { requiresAuth: true, role: 'paciente' }
+      },
+      {
+        path: 'perfil',
+        name: 'paciente.perfil',
+        component: PacientePerfil,
         meta: { requiresAuth: true, role: 'paciente' }
       },
     ]

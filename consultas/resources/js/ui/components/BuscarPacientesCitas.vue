@@ -105,10 +105,13 @@
                         </div>
                       </div>
                     </div>
-                    <div v-else class="citas-hoy-section">
+                    <div v-else-if="paciente.tiene_citas_con_medico" class="citas-hoy-section">
                       <span class="no-citas-hoy">Sin citas programadas para hoy</span>
                     </div>
-                    <div v-if="paciente.stats" class="result-stats">
+                    <div v-else class="citas-hoy-section">
+                      <span class="no-citas-hoy new-patient">Nuevo paciente - Sin citas previas</span>
+                    </div>
+                    <div v-if="paciente.stats && paciente.tiene_citas_con_medico" class="result-stats">
                       <div class="stat-item">
                         <span class="stat-icon">📊</span>
                         <span class="stat-value">{{ paciente.stats.total_citas }}</span>
@@ -118,6 +121,12 @@
                         <span class="stat-icon">✅</span>
                         <span class="stat-value">{{ paciente.stats.citas_completadas }}</span>
                         <span class="stat-label">Completadas</span>
+                      </div>
+                    </div>
+                    <div v-else-if="!paciente.tiene_citas_con_medico" class="result-stats">
+                      <div class="stat-item new-patient-badge">
+                        <span class="stat-icon">🆕</span>
+                        <span class="stat-label">Paciente nuevo</span>
                       </div>
                     </div>
                   </div>
@@ -1021,6 +1030,19 @@ const vClickOutside = {
   font-size: 12px;
   color: rgba(234,246,255,0.5);
   font-style: italic;
+}
+
+.no-citas-hoy.new-patient {
+  color: rgba(0,245,255,0.8);
+  font-weight: 600;
+}
+
+.new-patient-badge {
+  padding: 6px 12px;
+  background: rgba(0,245,255,0.1);
+  border: 1px solid rgba(0,245,255,0.3);
+  border-radius: 8px;
+  color: #00f5ff;
 }
 
 .result-stats {

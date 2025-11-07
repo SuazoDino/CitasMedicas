@@ -77,73 +77,77 @@ class CitasController extends Controller
         // Sanitizar query
         $q = str_replace(['%', '_'], ['\%', '\_'], $q);
         
-        // Buscar pacientes únicos que han tenido citas con este médico
-        $pacientesIds = DB::table('citas as c')
-            ->join('pacientes as p', 'p.id', '=', 'c.paciente_id')
+        // Buscar TODOS los pacientes que coincidan con la búsqueda (no solo los que tienen citas)
+        $pacientes = DB::table('pacientes as p')
             ->join('users as u', 'u.id', '=', 'p.user_id')
-            ->where('c.medico_id', $medico->id)
             ->where('u.name', 'like', "%{$q}%")
-            ->distinct()
-            ->pluck('p.id')
-            ->take(10);
-        
-        $pacientes = collect($pacientesIds)->map(function($pacienteId) use ($medico) {
-            $paciente = DB::table('pacientes as p')
-                ->join('users as u', 'u.id', '=', 'p.user_id')
-                ->where('p.id', $pacienteId)
-                ->select([
-                    'p.id as paciente_id',
-                    'u.name as nombre',
-                    'u.email',
-                    'u.phone',
-                    'p.birthdate',
-                    'p.gender',
-                ])
-                ->first();
-            
-            if (!$paciente) return null;
-            
-            // Obtener citas del día de hoy con este médico
-            $hoy = Carbon::now()->toDateString();
-            $citasHoy = DB::table('citas')
-                ->where('medico_id', $medico->id)
-                ->where('paciente_id', $pacienteId)
-                ->whereDate('starts_at', $hoy)
-                ->select('id', 'starts_at', 'estado', 'especialidad_id')
-                ->get();
-            
-            // Obtener estadísticas del paciente con este médico
-            $totalCitas = DB::table('citas')
-                ->where('medico_id', $medico->id)
-                ->where('paciente_id', $pacienteId)
-                ->count();
-            
-            $citasCompletadas = DB::table('citas')
-                ->where('medico_id', $medico->id)
-                ->where('paciente_id', $pacienteId)
-                ->where('estado', 'completada')
-                ->count();
-            
-            return [
-                'id' => (int) $paciente->paciente_id,
-                'nombre' => (string) $paciente->nombre,
-                'email' => (string) ($paciente->email ?? ''),
-                'phone' => (string) ($paciente->phone ?? ''),
-                'birthdate' => $paciente->birthdate ? Carbon::parse($paciente->birthdate)->format('Y-m-d') : null,
-                'gender' => $paciente->gender ?? null,
-                'citas_hoy' => $citasHoy->map(function($cita) {
-                    return [
-                        'id' => $cita->id,
-                        'hora' => Carbon::parse($cita->starts_at)->format('H:i'),
-                        'estado' => $cita->estado ?? 'pendiente',
-                    ];
-                }),
-                'stats' => [
-                    'total_citas' => $totalCitas,
-                    'citas_completadas' => $citasCompletadas,
-                ],
-            ];
-        })->filter()->values();
+            ->select([
+                'p.id as paciente_id',
+                'u.name as nombre',
+                'u.email',
+                'u.phone',
+                'p.birthdate',
+                'p.gender',
+            ])
+            ->limit(15)
+            ->get()
+            ->map(function($paciente) use ($medico) {
+                $pacienteId = (int) $paciente->paciente_id;
+                
+                // Verificar si este paciente ha tenido citas con este médico
+                $tieneCitasConMedico = DB::table('citas')
+                    ->where('medico_id', $medico->id)
+                    ->where('paciente_id', $pacienteId)
+                    ->exists();
+                
+                // Obtener citas del día de hoy con este médico (solo si tiene citas con este médico)
+                $citasHoy = collect();
+                $totalCitas = 0;
+                $citasCompletadas = 0;
+                
+                if ($tieneCitasConMedico) {
+                    $hoy = Carbon::now()->toDateString();
+                    $citasHoy = DB::table('citas')
+                        ->where('medico_id', $medico->id)
+                        ->where('paciente_id', $pacienteId)
+                        ->whereDate('starts_at', $hoy)
+                        ->select('id', 'starts_at', 'estado', 'especialidad_id')
+                        ->get();
+                    
+                    // Obtener estadísticas del paciente con este médico
+                    $totalCitas = DB::table('citas')
+                        ->where('medico_id', $medico->id)
+                        ->where('paciente_id', $pacienteId)
+                        ->count();
+                    
+                    $citasCompletadas = DB::table('citas')
+                        ->where('medico_id', $medico->id)
+                        ->where('paciente_id', $pacienteId)
+                        ->where('estado', 'completada')
+                        ->count();
+                }
+                
+                return [
+                    'id' => $pacienteId,
+                    'nombre' => (string) $paciente->nombre,
+                    'email' => (string) ($paciente->email ?? ''),
+                    'phone' => (string) ($paciente->phone ?? ''),
+                    'birthdate' => $paciente->birthdate ? Carbon::parse($paciente->birthdate)->format('Y-m-d') : null,
+                    'gender' => $paciente->gender ?? null,
+                    'tiene_citas_con_medico' => $tieneCitasConMedico,
+                    'citas_hoy' => $citasHoy->map(function($cita) {
+                        return [
+                            'id' => $cita->id,
+                            'hora' => Carbon::parse($cita->starts_at)->format('H:i'),
+                            'estado' => $cita->estado ?? 'pendiente',
+                        ];
+                    }),
+                    'stats' => [
+                        'total_citas' => $totalCitas,
+                        'citas_completadas' => $citasCompletadas,
+                    ],
+                ];
+            });
         
         // Buscar citas por nombre de paciente, ID de cita, o fecha
         $citas = Cita::with(['paciente.user', 'especialidad'])
