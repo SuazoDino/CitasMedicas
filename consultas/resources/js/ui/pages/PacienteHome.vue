@@ -22,12 +22,14 @@
       </button>
 
       <!-- Menú -->
-      <div v-if="menuOpen" class="mr-menu">
-        <a @click.prevent="$router.push('/me')">Mi panel</a>
-        <a @click.prevent="$router.push('/me/perfil')">Perfil</a>
-        <hr />
-        <a @click.prevent="logout">Salir</a>
-      </div>
+            <div v-if="menuOpen" class="mr-menu">
+              <a @click.prevent="$router.push('/me')">Mi panel</a>
+              <a @click.prevent="$router.push('/me/perfil')">Perfil</a>
+              <a @click.prevent="$router.push('/me/citas')">Mis Citas</a>
+              <a @click.prevent="$router.push('/me/notificaciones')">Notificaciones</a>
+              <hr />
+              <a @click.prevent="logout">Salir</a>
+            </div>
     </div>
   </header>
   <section class="page-slot">

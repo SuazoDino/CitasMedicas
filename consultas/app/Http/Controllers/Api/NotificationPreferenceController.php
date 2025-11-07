@@ -12,6 +12,60 @@ use Illuminate\Validation\ValidationException;
 
 class NotificationPreferenceController extends Controller
 {
+    public function getPaciente(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $pacienteId = DB::table('pacientes')->where('user_id', $userId)->value('id');
+
+        if (!$pacienteId) {
+            return response()->json(['message' => 'No es paciente'], 403);
+        }
+
+        return $this->getPreferences($request, $userId, 'paciente');
+    }
+
+    public function getMedico(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $medicoId = DB::table('medicos')->where('user_id', $userId)->value('id');
+
+        if (!$medicoId) {
+            return response()->json(['message' => 'No es médico'], 403);
+        }
+
+        return $this->getPreferences($request, $userId, 'medico');
+    }
+
+    protected function getPreferences(Request $request, int $userId, string $context): JsonResponse
+    {
+        $preference = NotificationPreference::where('user_id', $userId)->first();
+
+        if (!$preference) {
+            // Retornar valores por defecto
+            return response()->json([
+                'contexto' => $context,
+                'email_opt_in' => true,
+                'sms_opt_in' => false,
+                'sms_number' => $request->user()->phone ?? null,
+                'push_opt_in' => false,
+                'push_token' => null,
+                'push_platform' => null,
+                'push_metadata' => null,
+            ]);
+        }
+
+        return response()->json([
+            'contexto' => $context,
+            'email_opt_in' => $preference->email_opt_in,
+            'sms_opt_in' => $preference->sms_opt_in,
+            'sms_number' => $preference->sms_number,
+            'push_opt_in' => $preference->push_opt_in,
+            'push_token' => $preference->push_token,
+            'push_platform' => $preference->push_platform,
+            'push_metadata' => $preference->push_metadata,
+        ]);
+    }
+
     public function updatePaciente(Request $request): JsonResponse
     {
         $userId = $request->user()->id;

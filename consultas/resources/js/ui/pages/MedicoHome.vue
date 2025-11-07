@@ -37,104 +37,289 @@
       <!-- WELCOME -->
       <div class="welcome-section">
         <div class="welcome-content">
-          <h1>¡Hola, {{ doctorName }}! 👋</h1>
-          <p>
-            Tienes {{ totalHoy }} citas para hoy · {{ pendientesHoy }} pendientes ·
-            Verificación: <b :class="badgeClass">{{ verifStatus }}</b>
-          </p>
+          <div class="welcome-header">
+            <div>
+              <h1>¡Hola, {{ doctorName }}! <span class="wave-emoji">👋</span></h1>
+              <div class="welcome-meta">
+                <span class="role-badge">
+                  <span class="role-icon">🩺</span>
+                  <span>Médico</span>
+                </span>
+                <span class="verif-badge" :class="badgeClass">
+                  <span class="verif-icon">✓</span>
+                  <span>Verificación: {{ formatVerifStatus(verifStatus) }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="welcome-stats">
+            <div class="welcome-stat-item">
+              <div class="stat-icon-wrapper stat-primary">
+                <span class="stat-icon">📅</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ totalHoy }}</div>
+                <div class="stat-desc">Citas hoy</div>
+              </div>
+            </div>
+            <div class="welcome-stat-item">
+              <div class="stat-icon-wrapper stat-warning">
+                <span class="stat-icon">⏳</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ pendientesHoy }}</div>
+                <div class="stat-desc">Pendientes</div>
+              </div>
+            </div>
+            <div class="welcome-stat-item">
+              <div class="stat-icon-wrapper stat-success">
+                <span class="stat-icon">✅</span>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ confirmadasHoy }}</div>
+                <div class="stat-desc">Confirmadas</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="welcome-actions">
-          <button class="btn-new-appointment" @click="goHorarios">⚙️ Configurar Horarios</button>
-          <button class="btn-soft" @click="cargarAgenda" :disabled="loading">
-            {{ loading ? 'Actualizando…' : '⟳ Refrescar agenda' }}
+          <button class="btn-primary-action" @click="goHorarios">
+            <span class="btn-icon">⚙️</span>
+            <span>Configurar Horarios</span>
+          </button>
+          <button class="btn-secondary-action" @click="cargarAgenda" :disabled="loading">
+            <span v-if="loading" class="btn-spinner">⏳</span>
+            <span v-else class="btn-icon">⟳</span>
+            <span>{{ loading ? 'Actualizando…' : 'Refrescar' }}</span>
           </button>
         </div>
       </div>
 
-      <!-- QUICK STATS (mismo layout que Paciente) -->
+      <!-- DATE SELECTOR -->
+      <div class="date-selector-section">
+        <label class="date-label">
+          <span class="label-icon">📅</span>
+          <span>Ver citas del día:</span>
+        </label>
+        <input
+          type="date"
+          v-model="fechaSeleccionada"
+          @change="cambiarFecha"
+          class="date-input"
+        />
+        <button class="btn-today" @click="irAHoy" title="Ir a hoy">
+          <span>Hoy</span>
+        </button>
+      </div>
+
+      <!-- QUICK STATS -->
       <div class="quick-stats">
-        <div class="stat-card">
-          <div class="stat-icon">📅</div>
+        <div class="stat-card stat-total">
+          <div class="stat-header">
+            <div class="stat-icon">📅</div>
+            <div class="stat-trend" v-if="totalHoy > 0">↑</div>
+          </div>
           <div class="stat-value">{{ totalHoy }}</div>
           <div class="stat-label">Citas Hoy</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
+        <div class="stat-card stat-confirmed">
+          <div class="stat-header">
+            <div class="stat-icon">✅</div>
+            <div class="stat-trend" v-if="confirmadasHoy > 0">✓</div>
+          </div>
           <div class="stat-value">{{ confirmadasHoy }}</div>
           <div class="stat-label">Confirmadas</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
+        <div class="stat-card stat-pending">
+          <div class="stat-header">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-trend" v-if="pendientesHoy > 0">!</div>
+          </div>
           <div class="stat-value">{{ pendientesHoy }}</div>
           <div class="stat-label">Pendientes</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">🧾</div>
+        <div class="stat-card stat-completed">
+          <div class="stat-header">
+            <div class="stat-icon">🧾</div>
+            <div class="stat-trend" v-if="completadasHoy > 0">✓</div>
+          </div>
           <div class="stat-value">{{ completadasHoy }}</div>
           <div class="stat-label">Completadas</div>
         </div>
       </div>
 
-      <!-- AGENDA (usa las mismas tarjetas “appointment-card”) -->
-      <div class="appointments-section">
-        <div class="section-title">📒 Agenda del Día</div>
+      <!-- FILTROS -->
+      <div class="filters-section">
+        <div class="filter-tabs">
+          <button
+            class="filter-tab"
+            :class="{ active: filtro === 'todas' }"
+            @click="filtro = 'todas'"
+          >
+            <span class="tab-icon">📋</span>
+            <span>Todas</span>
+            <span class="tab-count">{{ agenda.length }}</span>
+          </button>
+          <button
+            class="filter-tab"
+            :class="{ active: filtro === 'pendiente' }"
+            @click="filtro = 'pendiente'"
+          >
+            <span class="tab-icon">⏳</span>
+            <span>Pendientes</span>
+            <span class="tab-count">{{ pendientesHoy }}</span>
+          </button>
+          <button
+            class="filter-tab"
+            :class="{ active: filtro === 'confirmada' }"
+            @click="filtro = 'confirmada'"
+          >
+            <span class="tab-icon">✅</span>
+            <span>Confirmadas</span>
+            <span class="tab-count">{{ confirmadasHoy }}</span>
+          </button>
+          <button
+            class="filter-tab"
+            :class="{ active: filtro === 'completada' }"
+            @click="filtro = 'completada'"
+          >
+            <span class="tab-icon">✓</span>
+            <span>Completadas</span>
+            <span class="tab-count">{{ completadasHoy }}</span>
+          </button>
+        </div>
+      </div>
 
-        <div v-if="!agendaFiltrada.length" class="appointment-card">
-          <div class="doctor-details"><h3>Sin citas para mostrar</h3></div>
-          <div class="appointment-details">
-            <div class="detail-item">Cuando tengas citas, aparecerán aquí.</div>
+      <!-- AGENDA -->
+      <div class="appointments-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="title-icon">📒</span>
+            <span>Agenda del Día</span>
+            <span v-if="agendaFiltrada.length > 0" class="title-count">({{ agendaFiltrada.length }})</span>
           </div>
         </div>
 
-        <div
-          v-for="c in agendaFiltrada"
-          :key="c.id"
-          class="appointment-card"
-        >
-          <div class="appointment-header">
-            <div class="doctor-info">
-              <div class="doctor-avatar">👤</div>
-              <div class="doctor-details">
-                <h3>{{ c.paciente }}</h3>
-                <div class="doctor-specialty">ID Cita #{{ c.id }}</div>
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando citas...</p>
+        </div>
+
+        <div v-else-if="!agendaFiltrada.length" class="empty-state">
+          <div class="empty-illustration">
+            <div class="empty-icon">📅</div>
+            <div class="empty-pulse"></div>
+          </div>
+          <h3>No hay citas para mostrar</h3>
+          <p v-if="filtro !== 'todas'">
+            No hay citas con el estado "<strong>{{ formatEstado(filtro) }}</strong>" para esta fecha.
+          </p>
+          <p v-else>
+            No tienes citas programadas para <strong>{{ new Date(fechaSeleccionada).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}</strong>.
+          </p>
+          <div class="empty-actions">
+            <button class="btn-empty-primary" @click="goHorarios">
+              <span class="btn-icon">⚙️</span>
+              <span>Configurar Horarios</span>
+            </button>
+            <button class="btn-empty-secondary" @click="irAHoy" v-if="fechaSeleccionada !== new Date().toISOString().slice(0,10)">
+              <span class="btn-icon">📅</span>
+              <span>Ver citas de hoy</span>
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="appointments-grid">
+          <div
+            v-for="c in agendaFiltrada"
+            :key="c.id"
+            class="appointment-card"
+            :class="`appointment-${c.estado}`"
+          >
+            <div class="appointment-header">
+              <div class="patient-info">
+                <div class="patient-avatar" :class="statusPill(c.estado)">
+                  <span class="avatar-icon">👤</span>
+                </div>
+                <div class="patient-details">
+                  <h3 class="patient-name">{{ c.paciente }}</h3>
+                  <div class="appointment-meta">
+                    <span class="appointment-id">Cita #{{ c.id }}</span>
+                    <span class="meta-separator">•</span>
+                    <span class="appointment-time-meta">{{ c.hora }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="appointment-status" :class="statusPill(c.estado)">
+                <span class="status-dot"></span>
+                <span class="status-text">{{ formatEstado(c.estado) }}</span>
               </div>
             </div>
-            <div class="appointment-status" :class="statusPill(c.estado)">{{ c.estado }}</div>
-          </div>
 
-          <div class="appointment-details">
-            <div class="detail-item"><span>🕒</span><span>{{ c.hora }}</span></div>
-            <div class="detail-item"><span>📍</span><span>{{ c.lugar || 'Presencial/Telemedicina' }}</span></div>
-          </div>
+            <div class="appointment-body">
+              <div class="appointment-detail-row">
+                <div class="detail-item">
+                  <span class="detail-icon">🕒</span>
+                  <div class="detail-content">
+                    <span class="detail-label">Hora</span>
+                    <span class="detail-value">{{ c.hora }}</span>
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-icon">📍</span>
+                  <div class="detail-content">
+                    <span class="detail-label">Ubicación</span>
+                    <span class="detail-value">{{ c.lugar || 'Presencial/Telemedicina' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <div class="appointment-actions">
-            <button
-              v-if="c.estado==='pendiente'"
-              class="btn-action btn-primary"
-              @click="accion(c.id,'confirmar')"
-              :disabled="busyId===c.id"
-            >Confirmar</button>
+            <div class="appointment-actions">
+              <button
+                v-if="c.estado==='pendiente'"
+                class="btn-action btn-confirm"
+                @click="accion(c.id,'confirmar')"
+                :disabled="busyId===c.id"
+              >
+                <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
+                <span v-else class="btn-icon">✓</span>
+                <span>Confirmar</span>
+              </button>
 
-            <button
-              v-if="c.estado==='pendiente'"
-              class="btn-action btn-cancel"
-              @click="accion(c.id,'cancelar')"
-              :disabled="busyId===c.id"
-            >Cancelar</button>
+              <button
+                v-if="c.estado==='pendiente'"
+                class="btn-action btn-cancel"
+                @click="accion(c.id,'cancelar')"
+                :disabled="busyId===c.id"
+              >
+                <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
+                <span v-else class="btn-icon">✕</span>
+                <span>Cancelar</span>
+              </button>
 
-            <button
-              v-if="c.estado==='confirmada'"
-              class="btn-action btn-primary"
-              @click="accion(c.id,'completar')"
-              :disabled="busyId===c.id"
-            >Completar</button>
+              <button
+                v-if="c.estado==='confirmada'"
+                class="btn-action btn-complete"
+                @click="accion(c.id,'completar')"
+                :disabled="busyId===c.id"
+              >
+                <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
+                <span v-else class="btn-icon">✓</span>
+                <span>Completar</span>
+              </button>
 
-            <button
-              v-if="c.estado==='confirmada'"
-              class="btn-action btn-cancel"
-              @click="accion(c.id,'cancelar')"
-              :disabled="busyId===c.id"
-            >Cancelar</button>
+              <button
+                v-if="c.estado==='confirmada'"
+                class="btn-action btn-cancel"
+                @click="accion(c.id,'cancelar')"
+                :disabled="busyId===c.id"
+              >
+                <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
+                <span v-else class="btn-icon">✕</span>
+                <span>Cancelar</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -172,6 +357,7 @@ const agenda       = ref([])
 const filtro       = ref('todas')
 const loading      = ref(false)
 const busyId       = ref(null)
+const fechaSeleccionada = ref(new Date().toISOString().slice(0,10))
 
 const badgeClass = computed(() => ({
   'text-yellow': verifStatus.value === 'pendiente',
@@ -196,12 +382,7 @@ function statusPill(estado=''){
 async function cargarAgenda () {
   loading.value = true
   try {
-    // Obtener fecha de la URL o usar hoy
-    const urlParams = new URLSearchParams(window.location.search)
-    const fechaParam = urlParams.get('date')
-    const fecha = fechaParam || new Date().toISOString().slice(0,10)
-    
-    const { data } = await axios.get('/api/medico/citas', { params: { date: fecha } })
+    const { data } = await axios.get('/api/medico/citas', { params: { date: fechaSeleccionada.value } })
     agenda.value = (data ?? []).map(r => ({
       id: r.id,
       hora: new Date(r.starts_at).toTimeString().slice(0,5),
@@ -210,6 +391,34 @@ async function cargarAgenda () {
       lugar: r.lugar || null,
     }))
   } finally { loading.value = false }
+}
+
+function cambiarFecha() {
+  cargarAgenda()
+}
+
+function irAHoy() {
+  fechaSeleccionada.value = new Date().toISOString().slice(0,10)
+  cargarAgenda()
+}
+
+function formatEstado(estado) {
+  const map = {
+    'pendiente': 'Pendiente',
+    'confirmada': 'Confirmada',
+    'completada': 'Completada',
+    'cancelada': 'Cancelada',
+  }
+  return map[estado] || estado
+}
+
+function formatVerifStatus(status) {
+  const map = {
+    'pendiente': 'Pendiente',
+    'verificado': 'Verificado',
+    'rechazado': 'Rechazado',
+  }
+  return map[status] || status
 }
 
 async function accion(id, tipo){
@@ -239,6 +448,21 @@ onMounted(async ()=>{
 <style scoped>
 /* ===== Tipografías de estado pequeñas (para el badge del héroe) ===== */
 .text-yellow{ color:#fde68a } .text-green{ color:#86efac } .text-red{ color:#fca5a5 }
+
+/* Animaciones */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 
 /* ==================== */
 /* == HEADER (mr-*)  == */
@@ -297,72 +521,836 @@ onMounted(async ()=>{
 /* == CONTENIDO (UI)  == */
 /* ===================== */
 .welcome-section{
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  padding: 20px 22px; margin-bottom: 18px;
-  background: rgba(255,255,255,.06);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:24px;
+  padding: 28px 32px; margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(127,59,243,0.15) 0%, rgba(255,42,136,0.1) 100%);
   border:1px solid rgba(255,255,255,.12);
-  border-radius: 20px;
-  box-shadow: 0 10px 28px rgba(0,0,0,.32);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(127,59,243,.2);
+  animation: fadeIn 0.5s ease-out;
 }
-.welcome-content h1{ font-size:28px; font-weight:900; margin:0 0 6px }
-.welcome-content p{ color: rgba(255,255,255,.7); margin:0 }
-.welcome-actions{ display:flex; gap:10px; flex-wrap:wrap }
-.btn-new-appointment{
-  padding:10px 16px; border-radius:999px; border:0; color:#fff; cursor:pointer;
+
+.welcome-content {
+  flex: 1;
+}
+
+.welcome-header {
+  margin-bottom: 24px;
+}
+
+.welcome-content h1{ 
+  font-size:32px; 
+  font-weight:900; 
+  margin:0 0 12px 0;
+  background: linear-gradient(135deg, #fff, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.wave-emoji {
+  display: inline-block;
+  animation: wave 1s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  75% { transform: rotate(-20deg); }
+}
+
+.welcome-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.role-badge {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(127,59,243,0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(127,59,243,0.3);
+}
+
+.role-icon {
+  font-size: 14px;
+}
+
+.verif-badge {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+}
+
+.verif-badge.text-yellow {
+  background: rgba(251,191,36,0.15);
+  color: #fde68a;
+  border-color: rgba(251,191,36,0.3);
+}
+
+.verif-badge.text-green {
+  background: rgba(34,197,94,0.15);
+  color: #86efac;
+  border-color: rgba(34,197,94,0.3);
+}
+
+.verif-badge.text-red {
+  background: rgba(239,68,68,0.15);
+  color: #fca5a5;
+  border-color: rgba(239,68,68,0.3);
+}
+
+.verif-icon {
+  font-size: 14px;
+}
+
+.welcome-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.welcome-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-wrapper.stat-primary {
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+}
+
+.stat-icon-wrapper.stat-warning {
+  background: rgba(251,191,36,0.15);
+  border: 1px solid rgba(251,191,36,0.3);
+}
+
+.stat-icon-wrapper.stat-success {
+  background: rgba(34,197,94,0.15);
+  border: 1px solid rgba(34,197,94,0.3);
+}
+
+.stat-icon {
+  font-size: 20px;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(234,246,255,0.98);
+  line-height: 1.2;
+}
+
+.stat-desc {
+  font-size: 12px;
+  color: rgba(234,246,255,0.6);
+  margin-top: 2px;
+}
+
+.welcome-actions{ 
+  display:flex; 
+  gap:12px; 
+  flex-wrap:wrap;
+  flex-shrink: 0;
+}
+
+.btn-primary-action{
+  padding:12px 20px; 
+  border-radius:12px; 
+  border:0; 
+  color:#fff; 
+  cursor:pointer;
   background: linear-gradient(135deg,#ff2a88,#7f3bf3);
-  box-shadow: 0 12px 26px rgba(127,59,243,.35);
+  box-shadow: 0 8px 24px rgba(127,59,243,.4);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
 }
-.btn-soft{
-  padding:10px 16px; border-radius:999px; color:#fff; background:rgba(255,255,255,.09);
-  border:1px solid rgba(255,255,255,.12)
+
+.btn-primary-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(127,59,243,.5);
+}
+
+.btn-secondary-action{
+  padding:12px 20px; 
+  border-radius:12px; 
+  color:#fff; 
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.12);
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-secondary-action:hover:not(:disabled) {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.2);
+}
+
+.btn-secondary-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-spinner {
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+/* Date Selector */
+.date-selector-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+}
+
+.date-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(234,246,255,0.9);
+}
+
+.label-icon {
+  font-size: 18px;
+}
+
+.date-input {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #7f3bf3;
+  background: rgba(255,255,255,0.08);
+}
+
+.btn-today {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: rgba(234,246,255,0.9);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.btn-today:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
 }
 
 /* Quick stats */
 .quick-stats{
-  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:22px;
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:24px;
 }
 .stat-card{
   background: rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.12);
-  border-radius: 18px; padding: 16px 18px;
+  border-radius: 18px; padding: 20px;
   box-shadow: 0 10px 24px rgba(0,0,0,.28);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
 }
-.stat-icon{ font-size:20px; margin-bottom:6px }
-.stat-value{ font-weight:900; font-size:26px }
-.stat-label{ color: rgba(255,255,255,.7) }
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(127,59,243,0.3);
+  box-shadow: 0 12px 32px rgba(127,59,243,.3);
+}
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.stat-icon{ 
+  font-size:24px; 
+  opacity: 0.9;
+}
+.stat-trend {
+  font-size: 14px;
+  opacity: 0.6;
+}
+.stat-value{ 
+  font-weight:900; 
+  font-size:28px;
+  color: rgba(234,246,255,0.98);
+  margin-bottom: 4px;
+}
+.stat-label{ 
+  color: rgba(234,246,255,.7);
+  font-size: 13px;
+  font-weight: 500;
+}
+.stat-card.stat-total .stat-icon { color: #60a5fa; }
+.stat-card.stat-confirmed .stat-icon { color: #86efac; }
+.stat-card.stat-pending .stat-icon { color: #fde68a; }
+.stat-card.stat-completed .stat-icon { color: #a5b4fc; }
 
-/* Agenda (reutiliza “appointment-card” del paciente) */
-.appointments-section .section-title{ font-weight:800; margin: 10px 0 12px }
-.appointment-card{
-  background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  border-radius: 16px; padding: 14px 16px; margin-bottom: 12px;
+/* Filters */
+.filters-section {
+  margin-bottom: 24px;
+  padding: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
 }
-.appointment-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
-.doctor-info{ display:flex; align-items:center; gap:12px }
-.doctor-avatar{ width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background: rgba(255,255,255,.08) }
-.doctor-details h3{ margin:0; font-weight:800 }
-.doctor-specialty{ font-size:12px; color: rgba(255,255,255,.7) }
+
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: rgba(234,246,255,0.7);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.filter-tab:hover {
+  background: rgba(255,255,255,0.05);
+  color: rgba(234,246,255,0.9);
+}
+
+.filter-tab.active {
+  background: linear-gradient(135deg, rgba(127,59,243,0.2), rgba(255,42,136,0.15));
+  color: rgba(234,246,255,0.98);
+  border: 1px solid rgba(127,59,243,0.3);
+}
+
+.tab-icon {
+  font-size: 16px;
+}
+
+.tab-count {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filter-tab.active .tab-count {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Agenda */
+.appointments-section {
+  margin-top: 8px;
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 20px;
+  color: rgba(234,246,255,0.98);
+}
+
+.title-icon {
+  font-size: 22px;
+}
+
+.title-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(234,246,255,0.6);
+  margin-left: 4px;
+}
+
+.appointments-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.appointment-card{
+  background: rgba(255,255,255,.05); 
+  border:1px solid rgba(255,255,255,.1);
+  border-radius: 16px; 
+  padding: 20px; 
+  transition: all 0.3s;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.appointment-card:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(127,59,243,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(127,59,243,.2);
+}
+
+.appointment-header{ 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  gap:16px; 
+  margin-bottom:16px;
+}
+
+.patient-info{ 
+  display:flex; 
+  align-items:center; 
+  gap:14px;
+  flex: 1;
+}
+
+.patient-avatar{ 
+  width:48px; 
+  height:48px; 
+  border-radius:50%; 
+  display:grid; 
+  place-items:center; 
+  background: rgba(255,255,255,.08);
+  border: 2px solid rgba(255,255,255,.1);
+  flex-shrink: 0;
+}
+
+.patient-avatar.status-pending {
+  border-color: rgba(251,191,36,0.4);
+}
+
+.patient-avatar.status-confirmed {
+  border-color: rgba(34,197,94,0.4);
+}
+
+.avatar-icon {
+  font-size: 24px;
+}
+
+.patient-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.patient-name{ 
+  margin:0 0 6px 0; 
+  font-weight:700;
+  font-size: 18px;
+  color: rgba(234,246,255,0.98);
+}
+
+.appointment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(234,246,255,0.6);
+  flex-wrap: wrap;
+}
+
+.appointment-id {
+  font-weight: 600;
+}
+
+.meta-separator {
+  opacity: 0.4;
+}
+
+.appointment-time-meta {
+  font-weight: 500;
+}
 
 .appointment-status{
-  padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid rgba(255,255,255,.12);
+  padding:8px 14px; 
+  border-radius:12px; 
+  font-size:13px; 
+  font-weight:600;
+  border:1px solid;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
-.status-pending{  background:rgba(251,191,36,.14); color:#fde68a; border-color:rgba(251,191,36,.35) }
-.status-confirmed{ background:rgba(34,197,94,.15);  color:#86efac; border-color:rgba(34,197,94,.42) }
-.status-done{      background:rgba(16,185,129,.15); color:#bbf7d0; border-color:rgba(16,185,129,.42) }
-.status-cancel{    background:rgba(239,68,68,.15);  color:#fca5a5; border-color:rgba(239,68,68,.42) }
 
-.appointment-details{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px; color:rgba(255,255,255,.9) }
-.detail-item{ display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:10px }
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
 
-.appointment-actions{ display:flex; gap:8px; flex-wrap:wrap }
+.status-pending{  
+  background:rgba(251,191,36,.15); 
+  color:#fde68a; 
+  border-color:rgba(251,191,36,.35);
+}
+.status-pending .status-dot {
+  background: #fde68a;
+  box-shadow: 0 0 8px rgba(251,191,36,.5);
+}
+
+.status-confirmed{ 
+  background:rgba(34,197,94,.15);  
+  color:#86efac; 
+  border-color:rgba(34,197,94,.42);
+}
+.status-confirmed .status-dot {
+  background: #86efac;
+  box-shadow: 0 0 8px rgba(34,197,94,.5);
+}
+
+.status-done{      
+  background:rgba(16,185,129,.15); 
+  color:#bbf7d0; 
+  border-color:rgba(16,185,129,.42);
+}
+.status-done .status-dot {
+  background: #bbf7d0;
+  box-shadow: 0 0 8px rgba(16,185,129,.5);
+}
+
+.status-cancel{    
+  background:rgba(239,68,68,.15);  
+  color:#fca5a5; 
+  border-color:rgba(239,68,68,.42);
+}
+.status-cancel .status-dot {
+  background: #fca5a5;
+  box-shadow: 0 0 8px rgba(239,68,68,.5);
+}
+
+.appointment-body {
+  margin-bottom: 16px;
+}
+
+.appointment-detail-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.detail-item{ 
+  display:flex; 
+  align-items:center; 
+  gap:10px; 
+  padding:12px 16px; 
+  background:rgba(255,255,255,.04); 
+  border:1px solid rgba(255,255,255,.08); 
+  border-radius:12px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.detail-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: rgba(234,246,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: rgba(234,246,255,0.9);
+  font-weight: 600;
+}
+
+.appointment-actions{ 
+  display:flex; 
+  gap:10px; 
+  flex-wrap:wrap;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
 .btn-action{
-  padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:#fff; cursor:pointer;
+  padding:10px 16px; 
+  border-radius:10px; 
+  border:1px solid; 
+  background:rgba(255,255,255,.06); 
+  color:#fff; 
+  cursor:pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
 }
-.btn-primary{ background: linear-gradient(135deg,#ff2a88,#7f3bf3); border-color: transparent; box-shadow:0 12px 26px rgba(127,59,243,.35) }
-.btn-cancel{ background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.35); color:#fecaca }
+
+.btn-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-confirm {
+  background: rgba(34,197,94,.15);
+  border-color: rgba(34,197,94,.35);
+  color: #86efac;
+}
+
+.btn-confirm:hover:not(:disabled) {
+  background: rgba(34,197,94,.25);
+  border-color: rgba(34,197,94,.5);
+}
+
+.btn-complete {
+  background: linear-gradient(135deg, rgba(16,185,129,.2), rgba(34,197,94,.15));
+  border-color: rgba(16,185,129,.35);
+  color: #bbf7d0;
+}
+
+.btn-complete:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(16,185,129,.3), rgba(34,197,94,.25));
+  border-color: rgba(16,185,129,.5);
+}
+
+.btn-cancel{ 
+  background: rgba(239,68,68,.15); 
+  border-color: rgba(239,68,68,.35); 
+  color:#fca5a5;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: rgba(239,68,68,.25);
+  border-color: rgba(239,68,68,.5);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(255,255,255,0.02);
+  border: 2px dashed rgba(255,255,255,0.1);
+  border-radius: 20px;
+}
+
+.empty-illustration {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+.empty-icon {
+  font-size: 80px;
+  opacity: 0.5;
+  display: block;
+}
+
+.empty-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid rgba(127,59,243,0.3);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(234,246,255,0.98);
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 15px;
+  color: rgba(234,246,255,0.7);
+  margin-bottom: 8px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.empty-state p strong {
+  color: rgba(234,246,255,0.9);
+  font-weight: 600;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.btn-empty-primary {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #7f3bf3, #ff2a88);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-empty-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(127,59,243,0.4);
+}
+
+.btn-empty-secondary {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: rgba(234,246,255,0.9);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-empty-secondary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(127,59,243,0.2);
+  border-top-color: #7f3bf3;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.loading-state p {
+  color: rgba(234,246,255,0.7);
+  font-size: 15px;
+}
 
 @media (max-width: 900px){
   .quick-stats{ grid-template-columns:repeat(2,minmax(0,1fr)) }
   .welcome-section{ flex-direction:column; align-items:flex-start }
+  .welcome-actions {
+    width: 100%;
+  }
+  .welcome-actions button {
+    flex: 1;
+  }
+  .filter-tabs {
+    flex-direction: column;
+  }
+  .filter-tab {
+    width: 100%;
+  }
+  .welcome-stats {
+    flex-direction: column;
+  }
+  .welcome-stat-item {
+    width: 100%;
+  }
 }
 </style>

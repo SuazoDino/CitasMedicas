@@ -6,11 +6,13 @@ use App\Http\Controllers\Api\CatalogoController;
 use App\Http\Controllers\Api\PacienteCitasController;
 use App\Http\Controllers\Api\MedicoCitasController;
 use App\Http\Controllers\Api\Paciente\DashboardController as PacienteDashboardController;
+use App\Http\Controllers\Api\Paciente\CitasController as PacienteCitasControllerV2;
 use App\Http\Controllers\Api\MedicoSlotsController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosController;
 use App\Http\Controllers\Api\Medico\EspecialidadesController as MedicoEspecialidadesController;
 use App\Http\Controllers\Api\Paciente\PerfilController as PacientePerfilController;
+use App\Http\Controllers\Api\Paciente\RatingController as PacienteRatingController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -42,9 +44,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('perfil', [PacientePerfilController::class, 'update']);
         Route::patch('perfil', [PacientePerfilController::class, 'update']);
         Route::get('citas/proximas', [PacienteCitasController::class, 'proximas']);
+        Route::get('citas', [PacienteCitasControllerV2::class, 'index']);
+        Route::get('citas/{id}', [PacienteCitasControllerV2::class, 'show']);
         Route::post('citas',         [PacienteCitasController::class, 'store']);
         Route::put('citas/{id}',     [PacienteCitasController::class, 'update']);
         Route::post('citas/{id}/cancelar', [PacienteCitasController::class, 'cancelar']);
+        Route::get('citas/{id}/rating', [PacienteRatingController::class, 'show']);
+        Route::post('citas/{id}/rating', [PacienteRatingController::class, 'store']);
+        Route::put('citas/{id}/rating', [PacienteRatingController::class, 'update']);
+        Route::get('notificaciones/preferencias', [NotificationPreferenceController::class, 'getPaciente']);
         Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updatePaciente']);
     });
 
@@ -66,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('especialidades',       [MedicoEspecialidadesController::class, 'update']);
         Route::delete('especialidades/{especialidad}', [MedicoEspecialidadesController::class, 'destroy']);
         
+        Route::get('notificaciones/preferencias', [NotificationPreferenceController::class, 'getMedico']);
         Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updateMedico']);
     });
 });

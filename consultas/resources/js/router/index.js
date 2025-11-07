@@ -17,6 +17,8 @@ import MedicoHorarios from '../ui/pages/MedicoHorarios.vue'
 import MedicoPerfil from '../ui/pages/MedicoPerfil.vue'
 import MedicoPerfilPublico from '../ui/pages/MedicoPerfilPublico.vue'
 import PacientePerfil from '../ui/pages/PacientePerfil.vue'
+import PacienteMisCitas from '../ui/pages/PacienteMisCitas.vue'
+import PacienteNotificaciones from '../ui/pages/PacienteNotificaciones.vue'
 // --- rutas (mismas que enviaste) ---
 const routes = [
   {
@@ -87,6 +89,18 @@ const routes = [
         path: 'perfil',
         name: 'paciente.perfil',
         component: PacientePerfil,
+        meta: { requiresAuth: true, role: 'paciente' }
+      },
+      {
+        path: 'citas',
+        name: 'paciente.mis-citas',
+        component: PacienteMisCitas,
+        meta: { requiresAuth: true, role: 'paciente' }
+      },
+      {
+        path: 'notificaciones',
+        name: 'paciente.notificaciones',
+        component: PacienteNotificaciones,
         meta: { requiresAuth: true, role: 'paciente' }
       },
     ]
