@@ -135,9 +135,18 @@ const stepMode = ref(route.query.step === '1')
 const currentStep = ref(0)
 const totalSteps = ref(2)
 
+// Función helper para obtener valores seguros de la query
+const getQueryString = (key, defaultValue = '') => {
+  const value = route.query[key]
+  if (typeof value === 'string') return value
+  if (value == null) return defaultValue
+  // Si es un objeto u otro tipo, convertirlo a string vacío para evitar [object Object]
+  return String(value === Object(value) ? defaultValue : value)
+}
+
 const { handleSubmit, isSubmitting, setErrors } = useForm({
   initialValues: {
-    email: typeof route.query.email === 'string' ? route.query.email : '',
+    email: getQueryString('email', ''),
     password: '',
   },
   validateOnInput: true,
@@ -194,24 +203,69 @@ const onSubmit = handleSubmit(async (values, { setErrors: assignErrors }) => {
 
   try {
     const rememberChoice = remember.value === true
-    const payload = {
-      email: normalizeString(values.email),
-      password: values.password,
-      remember: rememberChoice,
+    const emailValue = normalizeString(values.email || getFieldValue(email))
+    // NO normalizar la contraseña, mantenerla tal cual
+    const passwordValue = getFieldValue(password) || values.password || ''
+    
+    if (!emailValue || !passwordValue) {
+      assignErrors({
+        email: !emailValue ? 'El correo electrónico es obligatorio' : '',
+        password: !passwordValue ? 'La contraseña es obligatoria' : '',
+      })
+      return
     }
+    
+    const payload = {
+      email: emailValue.trim(),
+      password: passwordValue, // Mantener la contraseña sin modificar
+    }
+    
+    console.log('🔐 Intentando login con:', { 
+      email: payload.email, 
+      passwordLength: payload.password?.length || 0,
+      passwordPreview: payload.password ? '***' + payload.password.slice(-2) : 'vacía'
+    })
 
-    const { data } = await api.post('/auth/login', {
-      ...payload,
+    const { data } = await api.post('/auth/login', payload)
+    
+    console.log('✅ Respuesta del login:', data)
+    console.log('👤 Roles recibidos:', data?.roles)
+
+    // IMPORTANTE: Limpiar TODO el estado anterior antes de guardar el nuevo
+    auth.clear()
+    sessionStorage.removeItem('whoami_ok')
+    sessionStorage.removeItem('whoami_token')
+    
+    // Limpiar también tokens viejos que puedan estar en localStorage
+    ;['token', 'auth_token', 'access_token', 'user_name', 'roles'].forEach(k => {
+      localStorage.removeItem(k)
+      sessionStorage.removeItem(k)
     })
 
     if (!api.defaults.headers.common) api.defaults.headers.common = {}
     api.defaults.headers.common.Authorization = `Bearer ${data.token}`
+    
+    // Obtener el nombre y roles del usuario desde la respuesta
+    const userName = data?.user?.name || ''
+    const userRoles = Array.isArray(data.roles) ? data.roles : []
+    
+    // Guardar la nueva sesión en el store centralizado
     auth.persistSession({
       token: data.token,
-      roles: Array.isArray(data.roles) ? data.roles : [],
-      name: data?.user?.name ?? '',
+      roles: userRoles,
+      name: userName,
       remember: rememberChoice,
     })
+    
+    // IMPORTANTE: Marcar el cache como válido INMEDIATAMENTE después del login
+    // para evitar que el router guard lo sobrescriba
+    sessionStorage.setItem('whoami_ok', '1')
+    sessionStorage.setItem('whoami_token', data.token)
+    
+    console.log('💾 Token guardado:', data.token ? 'Sí' : 'No')
+    console.log('💾 Nombre guardado:', userName)
+    console.log('💾 Roles guardados:', userRoles)
+    console.log('💾 Cache de usuario marcado como válido')
 
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
     if (redirect) {
@@ -224,12 +278,22 @@ const onSubmit = handleSubmit(async (values, { setErrors: assignErrors }) => {
     } else if (auth.roles.includes('paciente')) {
       await router.replace({ name: 'paciente.home' })
     } else {
+      console.warn('⚠️ Usuario sin roles válidos, redirigiendo a landing')
       await router.replace({ name: 'landing' })
     }
   } catch (error) {
     const response = error?.response?.data
+    console.error('❌ Error en login:', error)
+    console.error('📋 Respuesta del error:', response)
+    
     if (response?.errors) {
-      assignErrors(response.errors)
+      const mappedErrors = {}
+      Object.keys(response.errors).forEach(key => {
+        mappedErrors[key] = Array.isArray(response.errors[key]) 
+          ? response.errors[key][0] 
+          : String(response.errors[key])
+      })
+      assignErrors(mappedErrors)
     } else {
       setErrors({ email: 'No pudimos conectar con el servidor. Inténtalo en unos minutos.' })
     }

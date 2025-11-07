@@ -1,15 +1,10 @@
 import axios from 'axios'
+import { auth } from '../auth/store'
+
 const api = axios.create({ baseURL: '/api', withCredentials: true })
 
-const resolveToken = () =>
-  localStorage.getItem('token') ||
-  localStorage.getItem('auth_token') ||
-  localStorage.getItem('access_token') ||
-  sessionStorage.getItem('token') ||
-  null
-
 api.interceptors.request.use((config) => {
-  const token = resolveToken()
+  const token = auth.token
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })

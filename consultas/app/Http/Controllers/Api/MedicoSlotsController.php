@@ -19,9 +19,15 @@ class MedicoSlotsController extends Controller
         $desdeInput = $request->query('desde');
         $hastaInput = $request->query('hasta');
 
+        $now = Carbon::now($timezone);
         $desde = $desdeInput
             ? Carbon::parse($desdeInput, $timezone)->startOfDay()
-            : Carbon::now($timezone)->startOfDay();
+            : $now->copy()->startOfDay();
+        
+        // Asegurar que 'desde' no sea una fecha pasada
+        if ($desde->lt($now->copy()->startOfDay())) {
+            $desde = $now->copy()->startOfDay();
+        }
 
         $hasta = $hastaInput
             ? Carbon::parse($hastaInput, $timezone)->endOfDay()
@@ -53,7 +59,6 @@ class MedicoSlotsController extends Controller
                 'end'   => Carbon::parse($row->ends_at, $timezone),
             ]);
 
-        $now = Carbon::now($timezone);
         $slots = [];
 
         $period = CarbonPeriod::create(

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Paciente\DashboardController as PacienteDashboardCo
 use App\Http\Controllers\Api\MedicoSlotsController;
 use App\Http\Controllers\Api\NotificationPreferenceController;
 use App\Http\Controllers\Api\Medico\HorariosController as MedicoHorariosController;
+use App\Http\Controllers\Api\Medico\EspecialidadesController as MedicoEspecialidadesController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -19,10 +20,12 @@ Route::prefix('auth')->group(function () {
     Route::post('reset-password',    [PasswordResetController::class, 'reset']);
 });
 
-// Protegido
+// Público
 Route::prefix('public')->group(function () {
     Route::get('especialidades', [CatalogoController::class, 'especialidades']);
     Route::get('medicos',        [CatalogoController::class, 'medicos']);
+    Route::get('search',         [CatalogoController::class, 'search']);
+    Route::get('medicos/{medico}/perfil', [CatalogoController::class, 'medicoPerfil']);
     Route::get('medicos/{medico}/slots', [MedicoSlotsController::class, 'slots']);
 });
 
@@ -51,8 +54,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('horarios/{horario}',   [MedicoHorariosController::class, 'update']);
         Route::patch('horarios/{horario}', [MedicoHorariosController::class, 'update']);
         Route::delete('horarios/{horario}', [MedicoHorariosController::class, 'destroy']);
+        
+        // Rutas de especialidades - IMPORTANTE: estas deben estar antes de otras rutas que puedan coincidir
+        Route::get('especialidades',       [MedicoEspecialidadesController::class, 'index']);
+        Route::post('especialidades',      [MedicoEspecialidadesController::class, 'store']);
+        Route::put('especialidades',       [MedicoEspecialidadesController::class, 'update']);
+        Route::delete('especialidades/{especialidad}', [MedicoEspecialidadesController::class, 'destroy']);
+        
         Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updateMedico']);
     });
 });
 
 Route::get('/_ping', fn () => response()->json(['ok' => true, 'ts' => now()]));
+

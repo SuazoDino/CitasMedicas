@@ -7,7 +7,7 @@
   </div>
 
   <!-- NAVBAR -->
-  <nav class="navbar" v-if="!isAppNav && !isAuthPage">
+  <nav class="navbar" v-if="!isAppNav && !isAuthPage && !isAppPage">
     
     <div class="nav-container">
       <div class="logo">⚡ MediReserva</div>
@@ -260,13 +260,13 @@ const AUTH_ROUTES = ['/login', '/forgot-password', '/reset-password', '/register
 // --- ¿Página de autenticación? (pantalla completa)
 const isAuthPage = computed(() => AUTH_ROUTES.includes(route.path))
 
-// --- ¿Página interna de la app? (/me o /medico) ---
+// --- ¿Página interna de la app? (/me, /medico, o /doctor) ---
 const isAppPage = computed(() =>
-  route.path.startsWith('/me') || route.path.startsWith('/medico')
+  route.path.startsWith('/me') || route.path.startsWith('/medico') || route.path.startsWith('/doctor')
 )
 
-// --- Navbar compacta del panel (app nav) ---
-const isAppNav = computed(() => !isAuthPage.value && isAppPage.value)
+// --- Navbar compacta del panel (app nav) - solo para médico, paciente tiene su propio header ---
+const isAppNav = computed(() => !isAuthPage.value && route.path.startsWith('/medico'))
 
 // --- ¿Mostrar landing (hero, stats, specialties, about, footer)? ---
 const isLandingVisible = computed(() => !isAuthPage.value && !isAppPage.value)

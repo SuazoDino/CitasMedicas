@@ -8,13 +8,19 @@
 
     <!-- Formulario centrado -->
     <div class="auth-container">
-      <form @submit="onSubmit" class="auth-form">
+      <form @submit.prevent="onSubmit" class="auth-form">
         <h1 class="auth-title">Crear una cuenta gratuita</h1>
+
+        <!-- Mensaje de éxito -->
+        <div v-if="successMessage" class="auth-message auth-message--success">
+          <strong>¡Cuenta creada exitosamente! 🎉</strong>
+          <p>{{ successMessage }}</p>
+        </div>
 
         <!-- Selección de tipo de cuenta (solo en paso 1) -->
         <div v-if="!stepMode || currentStep === 0" class="auth-role-selector">
           <label class="auth-role-option" :class="{ 'is-selected': roleLabel === 'paciente' }" @click="selectRole('paciente')">
-            <input type="radio" value="paciente" :checked="roleLabel === 'paciente'" class="auth-role-input" @change="selectRole('paciente')" />
+            <input type="radio" name="role" value="paciente" :checked="roleLabel === 'paciente'" class="auth-role-input" @change="selectRole('paciente')" />
             <div class="auth-role-card">
               <div class="auth-role-icon">👤</div>
               <div class="auth-role-content">
@@ -25,7 +31,7 @@
             </label>
 
           <label class="auth-role-option" :class="{ 'is-selected': roleLabel === 'medico' }" @click="selectRole('medico')">
-            <input type="radio" value="medico" :checked="roleLabel === 'medico'" class="auth-role-input" @change="selectRole('medico')" />
+            <input type="radio" name="role" value="medico" :checked="roleLabel === 'medico'" class="auth-role-input" @change="selectRole('medico')" />
             <div class="auth-role-card">
               <div class="auth-role-icon">👨‍⚕️</div>
               <div class="auth-role-content">
@@ -47,6 +53,7 @@
         <div class="auth-field">
           <input
             id="reg-full-name"
+            name="full_name"
             :value="getFieldValue(fullName)"
             @input="fullName.setValue($event.target.value)"
             @blur="fullName.handleBlur"
@@ -61,6 +68,7 @@
         <div class="auth-field">
           <input
             id="reg-email"
+            name="email"
             :value="getFieldValue(email)"
             @input="email.setValue($event.target.value)"
             @blur="email.handleBlur"
@@ -78,6 +86,7 @@
         <div class="auth-field">
           <input
             id="reg-phone"
+            name="phone"
             :value="getFieldValue(phone)"
             @input="phone.setValue($event.target.value)"
             @blur="phone.handleBlur"
@@ -92,6 +101,7 @@
         <div class="auth-field">
           <input
             id="reg-password"
+            name="password"
             :value="getFieldValue(password)"
             @input="password.setValue($event.target.value)"
             @blur="password.handleBlur"
@@ -106,6 +116,7 @@
         <div class="auth-field">
           <input
             id="reg-password-confirm"
+            name="password_confirmation"
             :value="getFieldValue(passwordConfirmation)"
             @input="passwordConfirmation.setValue($event.target.value)"
             @blur="passwordConfirmation.handleBlur"
@@ -134,6 +145,7 @@
               <label class="auth-label">Tipo de documento de identidad *</label>
               <select
               id="reg-id-doc-tipo"
+              name="id_doc_tipo"
               :value="getFieldValue(idDocTipo)"
               @change="idDocTipo.setValue($event.target.value)"
               @blur="idDocTipo.handleBlur"
@@ -151,6 +163,7 @@
               <label class="auth-label">Número de documento *</label>
             <input
               id="reg-id-doc-numero"
+              name="id_doc_numero"
               :value="getFieldValue(idDocNumero)"
               @input="idDocNumero.setValue($event.target.value)"
               @blur="idDocNumero.handleBlur"
@@ -166,6 +179,7 @@
               <label class="auth-label">Tipo de licencia profesional *</label>
               <select
               id="reg-lic-tipo"
+              name="lic_tipo"
               :value="getFieldValue(licTipo)"
               @change="licTipo.setValue($event.target.value)"
               @blur="licTipo.handleBlur"
@@ -184,6 +198,7 @@
               <label class="auth-label">Número de licencia *</label>
             <input
               id="reg-lic-numero"
+              name="lic_numero"
               :value="getFieldValue(licNumero)"
               @input="licNumero.setValue($event.target.value)"
               @blur="licNumero.handleBlur"
@@ -199,6 +214,7 @@
               <label class="auth-label">País de expedición *</label>
             <input
               id="reg-lic-pais"
+              name="lic_pais"
               :value="getFieldValue(licPais)"
               @input="handlePaisInput"
               @blur="licPais.handleBlur"
@@ -217,6 +233,7 @@
           <div class="auth-field">
             <input
               id="reg-doc-tipo"
+              name="doc_tipo"
               :value="getFieldValue(docTipo)"
               @input="docTipo.setValue($event.target.value)"
               @blur="docTipo.handleBlur"
@@ -228,6 +245,7 @@
           <div class="auth-field">
             <input
               id="reg-doc-numero"
+              name="doc_numero"
               :value="getFieldValue(docNumero)"
               @input="docNumero.setValue($event.target.value)"
               @blur="docNumero.handleBlur"
@@ -239,6 +257,7 @@
           <div class="auth-field">
             <input
               id="reg-birthdate"
+              name="birthdate"
               :value="getFieldValue(birthdate)"
               @input="birthdate.setValue($event.target.value)"
               @blur="birthdate.handleBlur"
@@ -247,7 +266,7 @@
             />
           </div>
           <div class="auth-field">
-              <select id="reg-gender" :value="getFieldValue(gender)" @change="gender.setValue($event.target.value)" class="auth-input">
+              <select id="reg-gender" name="gender" :value="getFieldValue(gender)" @change="gender.setValue($event.target.value)" class="auth-input">
                 <option value="">Género (opcional)</option>
               <option value="femenino">Femenino</option>
               <option value="masculino">Masculino</option>
@@ -284,6 +303,20 @@
           class="auth-submit"
           type="submit"
           :disabled="isSubmitting"
+          @click="(e) => { 
+            try {
+              console.log('🔘 Botón clickeado!', { 
+                stepMode: stepMode.value, 
+                currentStep: currentStep.value, 
+                stepsLength: steps?.value?.length || 0, 
+                isSubmitting: isSubmitting.value,
+                buttonVisible: !stepMode.value || currentStep.value === (steps?.value?.length || 0) - 1
+              })
+            } catch (err) {
+              console.error('Error en click handler:', err)
+            }
+            // No prevenir el submit aquí, dejar que vee-validate lo maneje
+          }"
         >
         <span v-if="isSubmitting">Creando tu cuenta…</span>
         <span v-else>Crear cuenta</span>
@@ -302,7 +335,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch} from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField, defineRule } from '@vee-validate/core'
 import { required, email as emailRule, min, max, confirmed, one_of as oneOf } from '@vee-validate/rules'
@@ -329,6 +362,7 @@ const router = useRouter()
 const route = useRoute()
 const backendIssue = ref(null)
 const showPassword = ref(false)
+const successMessage = ref('')
 
 const initialRole = typeof route.query.role === 'string' ? route.query.role : props.defaultRole
 
@@ -372,6 +406,9 @@ const phone = useField('phone', (value) => {
 const role = useField('role', 'required|one_of:paciente,medico')
 const password = useField('password', 'required|min:6')
 const passwordConfirmation = useField('password_confirmation', 'required|confirmed:password')
+
+// Definir roleLabel ANTES de usarlo en las validaciones
+const roleLabel = computed(() => role.value.value || 'paciente')
 
 const docTipo = useField('doc_tipo')
 const docNumero = useField('doc_numero')
@@ -419,8 +456,6 @@ const licPais = useField('lic_pais', (value) => {
 const stepMode = ref(true)
 const currentStep = ref(0)
 
-const roleLabel = computed(() => role.value.value || 'paciente')
-
 const steps = computed(() => {
   const base = [
     { id: 'perfil' },
@@ -452,9 +487,10 @@ watch(roleLabel, (value) => {
 }, { immediate: false })
 
 const selectRole = (roleValue) => {
-  if (role.value.value !== roleValue) {
-    role.setValue(String(roleValue))
-  }
+  console.log('🔄 Cambiando rol a:', roleValue)
+  role.setValue(String(roleValue))
+  // Forzar actualización inmediata
+  role.handleBlur()
 }
 
 const handlePaisInput = (event) => {
@@ -520,73 +556,240 @@ async function validateStep(index) {
   return results.every(Boolean)
 }
 
-const normalizeString = (value) => (typeof value === 'string' ? value.trim() : '')
+const normalizeString = (value) => {
+  if (value == null) return ''
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'object') return '' // Si es objeto, retornar string vacío
+  return String(value).trim()
+}
+
 const emptyToNull = (value) => {
   const normalized = normalizeString(value)
   return normalized === '' ? null : normalized
 }
 
 const onSubmit = handleSubmit(async (formValues, helpers) => {
+  console.log('🚀 onSubmit ejecutado!')
+  console.log('formValues:', formValues)
+  console.log('stepMode:', stepMode.value)
+  console.log('currentStep:', currentStep.value)
+  console.log('steps:', steps.value)
+  console.log('steps.length:', steps?.value?.length || 0)
+  
   backendIssue.value = null
+  successMessage.value = '' // Limpiar mensaje de éxito al iniciar nuevo submit
 
-  if (stepMode.value && currentStep.value < steps.value.length - 1) {
+  if (stepMode.value && steps.value && currentStep.value < steps.value.length - 1) {
+    console.log('⏭️ Avanzando al siguiente paso...')
     const ok = await validateStep(currentStep.value)
     if (ok) {
       currentStep.value += 1
     }
     return
   }
+  
+  console.log('✅ Procediendo con el registro...')
 
+  let payload = null
+  
   try {
-    const payload = {
-      full_name: normalizeString(formValues.full_name),
-      email: normalizeString(formValues.email),
-      phone: emptyToNull(formValues.phone),
-      password: formValues.password,
-      password_confirmation: formValues.password_confirmation,
-      role: normalizeString(formValues.role),
+    // Obtener valores directamente de los campos (más confiable que formValues)
+    const fullNameValue = normalizeString(getFieldValue(fullName) || '')
+    const emailValue = normalizeString(getFieldValue(email) || '')
+    const passwordValue = getFieldValue(password) || ''
+    const passwordConfValue = getFieldValue(passwordConfirmation) || ''
+    const roleValue = normalizeString(getFieldValue(role) || 'paciente')
+    
+    console.log('📋 Valores obtenidos de los campos:', {
+      fullNameValue,
+      emailValue,
+      passwordValue: passwordValue ? '***' : '',
+      roleValue
+    })
+    
+    if (!fullNameValue || fullNameValue.trim() === '') {
+      helpers.setErrors({ full_name: 'El nombre completo es obligatorio' })
+      return
+    }
+    
+    if (!emailValue || emailValue.trim() === '') {
+      helpers.setErrors({ email: 'El correo electrónico es obligatorio' })
+      return
+    }
+    
+    if (!passwordValue || passwordValue.length < 6) {
+      helpers.setErrors({ password: 'La contraseña debe tener al menos 6 caracteres' })
+      return
+    }
+
+    payload = {
+      full_name: fullNameValue.trim(),
+      email: emailValue.trim(),
+      phone: emptyToNull(getFieldValue(phone)),
+      password: passwordValue,
+      password_confirmation: passwordConfValue,
+      role: roleValue || 'paciente',
     }
 
     let endpoint = '/auth/register/paciente'
-    if (formValues.role === 'medico') {
+    if (roleValue === 'medico') {
       endpoint = '/auth/register/medico'
+      
+      // Obtener valores directamente de los campos, asegurándonos de que sean strings
+      const idDocTipoRaw = getFieldValue(idDocTipo)
+      const idDocNumeroRaw = getFieldValue(idDocNumero)
+      const licTipoRaw = getFieldValue(licTipo)
+      const licNumeroRaw = getFieldValue(licNumero)
+      const licPaisRaw = getFieldValue(licPais)
+      
+      const idDocTipoValue = normalizeString(idDocTipoRaw || '')
+      const idDocNumeroValue = normalizeString(idDocNumeroRaw || '')
+      const licTipoValue = normalizeString(licTipoRaw || '')
+      const licNumeroValue = normalizeString(licNumeroRaw || '')
+      const licPaisValue = normalizeString(licPaisRaw || '').toUpperCase()
+      
+      console.log('🔍 Valores de campos de médico (raw):', {
+        idDocTipoRaw,
+        idDocNumeroRaw,
+        licTipoRaw,
+        licNumeroRaw,
+        licPaisRaw,
+      })
+      
+      console.log('🔍 Valores de campos de médico (normalized):', {
+        idDocTipoValue,
+        idDocNumeroValue,
+        licTipoValue,
+        licNumeroValue,
+        licPaisValue,
+      })
+      
+      if (!idDocTipoValue || !idDocNumeroValue || !licTipoValue || !licNumeroValue || !licPaisValue) {
+        console.warn('⚠️ Validación fallida - campos faltantes:', {
+          idDocTipoValue: !!idDocTipoValue,
+          idDocNumeroValue: !!idDocNumeroValue,
+          licTipoValue: !!licTipoValue,
+          licNumeroValue: !!licNumeroValue,
+          licPaisValue: !!licPaisValue,
+        })
+        
+        const errors = {}
+        if (!idDocTipoValue) errors.id_doc_tipo = 'El tipo de documento es obligatorio'
+        if (!idDocNumeroValue) errors.id_doc_numero = 'El número de documento es obligatorio'
+        if (!licTipoValue) errors.lic_tipo = 'El tipo de licencia es obligatorio'
+        if (!licNumeroValue) errors.lic_numero = 'El número de licencia es obligatorio'
+        if (!licPaisValue) errors.lic_pais = 'El país de expedición es obligatorio'
+        
+        helpers.setErrors(errors)
+        
+        // Scroll al campo con error
+        const firstErrorField = Object.keys(errors)[0]
+        const errorElement = document.querySelector(`[name="${firstErrorField}"]`)
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          errorElement.focus()
+        }
+        
+        return
+      }
+      
       Object.assign(payload, {
-        id_doc_tipo: normalizeString(formValues.id_doc_tipo),
-        id_doc_numero: normalizeString(formValues.id_doc_numero),
-        lic_tipo: normalizeString(formValues.lic_tipo),
-        lic_numero: normalizeString(formValues.lic_numero),
-        lic_pais: normalizeString(formValues.lic_pais).toUpperCase(),
+        id_doc_tipo: idDocTipoValue,
+        id_doc_numero: idDocNumeroValue,
+        lic_tipo: licTipoValue,
+        lic_numero: licNumeroValue,
+        lic_pais: licPaisValue,
       })
     } else {
       Object.assign(payload, {
-        doc_tipo: emptyToNull(formValues.doc_tipo),
-        doc_numero: emptyToNull(formValues.doc_numero),
-        birthdate: emptyToNull(formValues.birthdate),
-        gender: emptyToNull(formValues.gender),
+        doc_tipo: emptyToNull(getFieldValue(docTipo)),
+        doc_numero: emptyToNull(getFieldValue(docNumero)),
+        birthdate: emptyToNull(getFieldValue(birthdate)),
+        gender: emptyToNull(getFieldValue(gender)),
       })
     }
 
+    // Debug: mostrar qué se está enviando (puedes quitar esto después)
+    console.log('Enviando payload:', JSON.stringify(payload, null, 2))
+    console.log('📡 Endpoint:', endpoint)
+
     const { data } = await api.post(endpoint, payload)
+    
+    console.log('✅ Respuesta del backend:', data)
+    console.log('👤 Roles recibidos:', data?.roles)
+
+    // Mostrar mensaje de éxito
+    successMessage.value = `¡Bienvenido${roleValue === 'medico' ? ', especialista' : ''}! Tu cuenta ha sido creada exitosamente. Redirigiendo...`
+    
+    // Scroll al inicio para que el usuario vea el mensaje
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    // IMPORTANTE: Limpiar TODO el estado anterior antes de guardar el nuevo
+    auth.clear()
+    sessionStorage.removeItem('whoami_ok')
+    sessionStorage.removeItem('whoami_token')
+    
+    // Limpiar también tokens viejos que puedan estar en localStorage
+    ;['token', 'auth_token', 'access_token', 'user_name', 'roles'].forEach(k => {
+      localStorage.removeItem(k)
+      sessionStorage.removeItem(k)
+    })
 
     if (!api.defaults.headers.common) api.defaults.headers.common = {}
     api.defaults.headers.common.Authorization = `Bearer ${data.token}`
 
+    // Obtener el nombre y roles del usuario desde la respuesta
+    const userName = data?.user?.name || ''
+    const userRoles = Array.isArray(data.roles) ? data.roles : []
+
+    // Guardar la nueva sesión en el store centralizado
     auth.persistSession({
       token: data.token,
-      roles: Array.isArray(data.roles) ? data.roles : [],
-      name: data?.user?.name ?? '',
+      roles: userRoles,
+      name: userName,
       remember: true,
     })
+    
+    // IMPORTANTE: Marcar el cache como válido INMEDIATAMENTE después del registro
+    // para evitar que el router guard lo sobrescriba
+    sessionStorage.setItem('whoami_ok', '1')
+    sessionStorage.setItem('whoami_token', data.token)
+    
+    console.log('💾 Token guardado después del registro:', data.token ? 'Sí' : 'No')
+    console.log('💾 Nombre guardado:', userName)
+    console.log('💾 Roles guardados:', userRoles)
+    console.log('💾 Cache de usuario marcado como válido')
 
-    if (auth.roles.includes('medico')) {
+    // Esperar 2 segundos para que el usuario vea el mensaje de éxito antes de redirigir
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    // Verificar roles después de guardarlos
+    const savedRoles = auth.roles || []
+    const isMedico = Array.isArray(savedRoles) && savedRoles.includes('medico')
+    
+    console.log('🔐 Roles guardados:', savedRoles)
+    console.log('👨‍⚕️ Es médico?', isMedico)
+    
+    if (isMedico) {
       await router.replace({ name: 'medico.home' })
     } else {
       await router.replace({ name: 'paciente.home' })
     }
   } catch (error) {
+    successMessage.value = '' // Limpiar mensaje de éxito si hay error
     const response = error?.response?.data
+    console.error('Error del backend:', response)
+    console.error('Payload enviado:', payload)
+    
     if (response?.errors) {
-      helpers.setErrors(response.errors)
+      // Mapear errores del backend a los campos del formulario
+      const mappedErrors = {}
+      Object.keys(response.errors).forEach(key => {
+        mappedErrors[key] = Array.isArray(response.errors[key]) 
+          ? response.errors[key][0] 
+          : String(response.errors[key])
+      })
+      helpers.setErrors(mappedErrors)
     } else {
       setErrors({ email: 'No pudimos registrar la cuenta en este momento.' })
     }
@@ -794,6 +997,48 @@ select.auth-input {
   margin: 0;
   font-size: 0.875rem;
   color: #dc2626;
+}
+
+/* Mensajes de éxito */
+.auth-message {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-message--success {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(34, 197, 94, 0.1));
+  color: #15803d;
+  border: 2px solid rgba(22, 163, 74, 0.3);
+}
+
+.auth-message--success strong {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #15803d;
+}
+
+.auth-message--success p {
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .auth-hint-text {

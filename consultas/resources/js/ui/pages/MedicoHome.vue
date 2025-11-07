@@ -9,10 +9,7 @@
       </div>
 
       <!-- Buscador -->
-      <div class="mr-search">
-        <span class="mr-lens"></span>
-        <input placeholder="Buscar pacientes, citas..." />
-      </div>
+      <BuscarPacientesCitas />
 
       <!-- Usuario -->
       <button type="button" class="mr-userpill" @click.stop="menuOpen = !menuOpen">
@@ -149,6 +146,7 @@
 import axios from 'axios'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import BuscarPacientesCitas from '@/ui/components/BuscarPacientesCitas.vue'
 
 const router = useRouter()
 const menuOpen = ref(false)
@@ -198,8 +196,12 @@ function statusPill(estado=''){
 async function cargarAgenda () {
   loading.value = true
   try {
-    const today = new Date().toISOString().slice(0,10)
-    const { data } = await axios.get('/api/medico/citas', { params: { date: today } })
+    // Obtener fecha de la URL o usar hoy
+    const urlParams = new URLSearchParams(window.location.search)
+    const fechaParam = urlParams.get('date')
+    const fecha = fechaParam || new Date().toISOString().slice(0,10)
+    
+    const { data } = await axios.get('/api/medico/citas', { params: { date: fecha } })
     agenda.value = (data ?? []).map(r => ({
       id: r.id,
       hora: new Date(r.starts_at).toTimeString().slice(0,5),
@@ -262,26 +264,7 @@ onMounted(async ()=>{
   background: linear-gradient(135deg,#ff2a88 0%, #7f3bf3 45%, #00e5ff 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-.mr-search{
-  flex:1; display:flex; align-items:center; gap:10px;
-  border:1px solid rgba(255,255,255,.16);
-  background: rgba(255,255,255,.06);
-  border-radius: 999px; padding: 10px 14px; height: 44px;
-}
-.mr-lens{
-  width:14px; height:14px; border-radius:50%;
-  background: radial-gradient(circle at 40% 40%, #7fd6ff 0 40%, #5fb3ff 41% 100%);
-  box-shadow: 0 0 6px rgba(127,214,255,.8);
-  display:inline-block; position:relative;
-}
-.mr-lens::after{
-  content:''; position:absolute; width:8px; height:2px; background:#7fd6ff;
-  right:-8px; bottom:-1px; transform: rotate(35deg); border-radius:2px; opacity:.8;
-}
-.mr-search input{
-  background: transparent; border:0; outline:0; color:#eaf6ff; width:100%; font-size:14px;
-}
-.mr-search input::placeholder{ color: rgba(234,246,255,.55) }
+/* Buscador - ahora usa el componente BuscarMedicos */
 .mr-userpill{
   display:flex; align-items:center; gap:12px;
   height: 44px; padding: 6px 14px; cursor: pointer;
@@ -308,7 +291,7 @@ onMounted(async ()=>{
 .mr-menu a{ display:block; padding:10px 12px; text-decoration:none; color:inherit }
 .mr-menu a:hover{ background: rgba(255,255,255,.06) }
 .mr-menu hr{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:4px 0 }
-@media (max-width:980px){ .mr-search{ display:none } }
+/* Media query para buscador removido - ahora usa BuscarMedicos que maneja su propio responsive */
 
 /* ===================== */
 /* == CONTENIDO (UI)  == */

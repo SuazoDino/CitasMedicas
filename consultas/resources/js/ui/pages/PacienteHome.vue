@@ -1,6 +1,5 @@
 <template>
-  <!-- HEADER SOLO PARA PACIENTE (sin Tailwind) -->
-  <!-- HEADER DEL PANEL (estilo landing, sin Tailwind) -->
+  <!-- HEADER DEL PANEL (estilo landing) -->
   <header class="mr-dashbar">
     <div class="mr-dh">
       <!-- Marca -->
@@ -10,10 +9,7 @@
       </div>
 
       <!-- Buscador -->
-      <div class="mr-search">
-        <span class="mr-lens"></span>
-        <input placeholder="Buscar médicos, especialidades..." />
-      </div>
+      <BuscarMedicos />
 
       <!-- Usuario -->
       <button type="button" class="mr-userpill" @click.stop="menuOpen = !menuOpen">
@@ -251,6 +247,7 @@ import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import ReprogramarModal from '@/ui/components/ReprogramarModal.vue'
+import BuscarMedicos from '@/ui/components/BuscarMedicos.vue'
 
 const userName = ref('')
 const menuOpen = ref(false)
@@ -510,6 +507,373 @@ const statusClass = (s) => {
 
 
 <style scoped>
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.page-slot{
+  position:relative;
+  z-index:1;
+  max-width:1400px !important;
+  margin:0 auto !important;
+  padding:40px 24px !important;
+  color:#fff !important;
+  background:transparent !important;
+  min-height:auto !important;
+  display:block !important;
+}
+
+.container{
+  width:100% !important;
+  max-width:1400px !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+}
+
+/* ===== WELCOME SECTION ===== */
+.welcome-section{
+  display:flex !important;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:32px;
+  flex-wrap:wrap;
+  background:rgba(255,255,255,.05) !important;
+  backdrop-filter:blur(20px) !important;
+  border:1px solid rgba(255,255,255,.1) !important;
+  border-radius:24px !important;
+  padding:40px !important;
+}
+.welcome-content h1{
+  font-size:48px;
+  font-weight:900;
+  line-height:1.1;
+  margin-bottom:12px;
+  background:linear-gradient(135deg,#fff,#00f5ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.welcome-content p{
+  font-size:18px;
+  color:rgba(255,255,255,.7);
+  margin:0;
+}
+.btn-new-appointment{
+  padding:16px 32px;
+  background:linear-gradient(135deg,#ff006e,#8338ec);
+  color:#fff;
+  border:0;
+  border-radius:50px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:.3s;
+  box-shadow:0 10px 40px rgba(255,0,110,.3);
+  white-space:nowrap;
+}
+.btn-new-appointment:hover{
+  transform:translateY(-3px);
+  box-shadow:0 15px 50px rgba(255,0,110,.5);
+}
+
+/* ===== QUICK STATS ===== */
+.quick-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:24px;
+  margin-bottom:40px;
+}
+.stat-card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);
+  padding:32px 24px;
+  border-radius:20px;
+  text-align:center;
+  transition:.3s;
+}
+.stat-card:hover{
+  background:rgba(255,255,255,.1);
+  border-color:#00f5ff;
+  transform:translateY(-5px);
+}
+.stat-icon{
+  font-size:32px;
+  margin-bottom:12px;
+}
+.stat-value{
+  font-size:48px;
+  font-weight:900;
+  background:linear-gradient(135deg,#ff006e,#8338ec,#00f5ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+.stat-label{
+  color:rgba(255,255,255,.6);
+  font-size:14px;
+  font-weight:500;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content{
+  display:grid;
+  grid-template-columns:1fr 380px;
+  gap:32px;
+  margin-top:40px;
+}
+.appointments-section{
+  min-width:0;
+}
+.section-title{
+  font-size:24px;
+  font-weight:800;
+  margin-bottom:20px;
+  color:#fff;
+}
+.appointment-card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;
+  padding:24px;
+  margin-bottom:16px;
+  transition:.3s;
+}
+.appointment-card:hover{
+  border-color:#00f5ff;
+  transform:translateY(-2px);
+}
+.appointment-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.doctor-info{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex:1;
+}
+.doctor-avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.08);
+  font-size:24px;
+}
+.doctor-details h3{
+  margin:0;
+  font-weight:800;
+  font-size:18px;
+  color:#fff;
+}
+.doctor-specialty{
+  font-size:13px;
+  color:rgba(255,255,255,.7);
+  margin-top:4px;
+}
+.appointment-status{
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  border:1px solid rgba(255,255,255,.12);
+  text-transform:capitalize;
+}
+.status-pending{
+  background:rgba(251,191,36,.14);
+  color:#fde68a;
+  border-color:rgba(251,191,36,.35);
+}
+.status-confirmed{
+  background:rgba(34,197,94,.15);
+  color:#86efac;
+  border-color:rgba(34,197,94,.42);
+}
+.appointment-details{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.detail-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  font-size:14px;
+  color:rgba(255,255,255,.9);
+}
+.appointment-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.btn-action{
+  padding:10px 16px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:600;
+  transition:.3s;
+}
+.btn-action:hover{
+  background:rgba(255,255,255,.1);
+  border-color:#00f5ff;
+}
+.btn-cancel{
+  background:rgba(239,68,68,.18);
+  border-color:rgba(239,68,68,.35);
+  color:#fecaca;
+}
+.btn-reschedule{
+  background:rgba(59,130,246,.18);
+  border-color:rgba(59,130,246,.35);
+  color:#bfdbfe;
+}
+.btn-video{
+  background:linear-gradient(135deg,#ff006e,#8338ec);
+  border-color:transparent;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+.card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;
+  padding:24px;
+}
+.recommended-doctors{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.doctor-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:16px;
+  transition:.3s;
+}
+.doctor-card:hover{
+  border-color:#00f5ff;
+  transform:translateY(-2px);
+}
+.doctor-card-header{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+.doctor-card-avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.08);
+  font-size:24px;
+  flex-shrink:0;
+}
+.doctor-card-info h4{
+  margin:0;
+  font-weight:800;
+  font-size:16px;
+  color:#fff;
+}
+.doctor-card-specialty{
+  font-size:13px;
+  color:rgba(255,255,255,.7);
+  margin-top:4px;
+}
+.rating{
+  font-size:12px;
+  color:rgba(255,255,255,.6);
+  margin-top:6px;
+}
+.btn-book{
+  width:100%;
+  padding:10px 16px;
+  background:linear-gradient(135deg,#ff006e,#8338ec);
+  color:#fff;
+  border:0;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.3s;
+}
+.btn-book:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(255,0,110,.3);
+}
+.health-tip{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+}
+.tip-icon{
+  font-size:32px;
+  flex-shrink:0;
+}
+.tip-body h4{
+  margin:0 0 8px 0;
+  font-weight:800;
+  font-size:16px;
+  color:#fff;
+}
+.tip-body ul{
+  margin:8px 0 0 0;
+  padding-left:20px;
+  list-style:disc;
+  color:rgba(255,255,255,.75);
+}
+.tip-body li{
+  margin-bottom:6px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:1024px){
+  .main-content{
+    grid-template-columns:1fr;
+  }
+  .quick-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+@media (max-width:768px){
+  .welcome-section{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .welcome-content h1{
+    font-size:36px;
+  }
+  .quick-stats{
+    grid-template-columns:1fr;
+  }
+  .stat-value{
+    font-size:36px;
+  }
+}
+
 .toast-container{
   position:fixed;
   top:20px;right:20px;

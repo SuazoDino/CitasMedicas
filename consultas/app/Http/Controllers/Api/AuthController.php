@@ -87,11 +87,18 @@ class AuthController extends Controller
         }
 
         $res = DB::transaction(function () use ($data, $name, $phone, $roleId) {
+            \Log::info('Creando usuario paciente', [
+                'email' => $data['email'],
+                'name' => $name,
+                'password_length' => strlen($data['password']),
+            ]);
+            
+            // El modelo User tiene 'password' => 'hashed' en el cast, así que Laravel lo hashea automáticamente
             $u = User::create([
                 'name'     => $name,
                 'email'    => $data['email'],
                 'phone'    => $phone,
-                'password' => Hash::make($data['password']),
+                'password' => $data['password'], // Laravel lo hashea automáticamente por el cast
             ]);
 
             $u->roles()->syncWithoutDetaching([$roleId]);
@@ -152,28 +159,39 @@ class AuthController extends Controller
         }
 
         $res = DB::transaction(function () use ($data, $name, $phone, $roleId) {
+            \Log::info('Creando usuario médico', [
+                'email' => $data['email'],
+                'name' => $name,
+                'password_length' => strlen($data['password']),
+            ]);
+            
+            // El modelo User tiene 'password' => 'hashed' en el cast, así que Laravel lo hashea automáticamente
             $u = User::create([
                 'name'     => $name,
                 'email'    => $data['email'],
                 'phone'    => $phone,
-                'password' => Hash::make($data['password']),
+                'password' => $data['password'], // Laravel lo hashea automáticamente por el cast
             ]);
 
             // rol médico
             $u->roles()->syncWithoutDetaching([$roleId]);
 
             // fila en 'medicos'
-            Medico::create([
+            $medico = Medico::create([
                 'user_id'        => $u->id,
                 'id_doc_tipo'    => $data['id_doc_tipo'],
                 'id_doc_numero'  => $data['id_doc_numero'],
                 'lic_tipo'       => $data['lic_tipo'],
                 'lic_numero'     => $data['lic_numero'],
                 'lic_pais'       => $data['lic_pais'],
-                'verif_status'   => 'provisional',   // ✅ valor válido según tu ENUM
-                'is_searchable'  => 1,               // por si no tiene default
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'verif_status'   => 'provisional',
+                'is_searchable'  => true,
+            ]);
+            
+            \Log::info('Usuario médico creado exitosamente', [
+                'user_id' => $u->id,
+                'medico_id' => $medico->id,
+                'roles' => $u->roles()->pluck('name')->toArray(),
             ]);
 
             $token = $u->createToken('web')->plainTextToken;
@@ -194,11 +212,88 @@ class AuthController extends Controller
         $data = $r->validate([
             'email'    => ['required','email'],
             'password' => ['required','string'],
-            
         ]);
 
         $u = User::where('email', $data['email'])->first();
-        if (!$u || !Hash::check($data['password'], $u->password)) {
+        
+        if (!$u) {
+            \Log::warning('Login fallido: usuario no encontrado', ['email' => $data['email']]);
+            return response()->json([
+                'message' => 'Las credenciales proporcionadas no son válidas.',
+                'errors'  => [
+                    'email' => ['Revisa tu correo y contraseña e inténtalo nuevamente.'],
+                ],
+                'hints'   => [
+                    'reset' => 'Si olvidaste tu contraseña puedes solicitar un enlace de recuperación.',
+                ],
+            ], 422);
+        }
+        
+        // Obtener el hash directamente de la BD sin pasar por el cast de Eloquent
+        $storedPassword = DB::table('users')->where('id', $u->id)->value('password');
+        
+        \Log::info('Verificando contraseña', [
+            'email' => $data['email'],
+            'user_id' => $u->id,
+            'password_length' => strlen($data['password']),
+            'stored_hash_length' => strlen($storedPassword),
+            'stored_hash_preview' => substr($storedPassword, 0, 20) . '...',
+        ]);
+        
+        $passwordMatch = Hash::check($data['password'], $storedPassword);
+        
+        // Si no coincide, puede ser que la contraseña esté doblemente hasheada
+        // Intentar corregirla automáticamente re-asignando la contraseña en texto plano
+        if (!$passwordMatch) {
+            \Log::warning('Contraseña no coincide, intentando corregir posible doble hash', [
+                'email' => $data['email'],
+                'user_id' => $u->id,
+            ]);
+            
+            try {
+                // Guardar el hash original por si acaso
+                $originalHash = $storedPassword;
+                
+                // Re-asignar la contraseña en texto plano
+                // El cast 'hashed' la hasheará correctamente una sola vez
+                $u->password = $data['password'];
+                $u->save();
+                
+                // Verificar si ahora funciona
+                $u->refresh();
+                $newStoredPassword = DB::table('users')->where('id', $u->id)->value('password');
+                $newMatch = Hash::check($data['password'], $newStoredPassword);
+                
+                if ($newMatch) {
+                    \Log::info('Contraseña corregida automáticamente (estaba doblemente hasheada)', [
+                        'email' => $data['email'],
+                        'user_id' => $u->id,
+                    ]);
+                    $passwordMatch = true;
+                } else {
+                    // Si no funciona, restaurar el hash original
+                    DB::table('users')->where('id', $u->id)->update(['password' => $originalHash]);
+                    \Log::warning('No se pudo corregir la contraseña, restaurando hash original', [
+                        'email' => $data['email'],
+                        'user_id' => $u->id,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error al intentar corregir contraseña', [
+                    'email' => $data['email'],
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        }
+        
+        if (!$passwordMatch) {
+            \Log::warning('Login fallido: contraseña incorrecta', [
+                'email' => $data['email'],
+                'user_id' => $u->id,
+                'password_length' => strlen($data['password']),
+                'stored_hash_length' => strlen($storedPassword),
+            ]);
             return response()->json([
                 'message' => 'Las credenciales proporcionadas no son válidas.',
                 'errors'  => [
@@ -211,11 +306,19 @@ class AuthController extends Controller
         }
 
         $token = $u->createToken('web')->plainTextToken;
-        return [
+        $roles = $u->roles()->pluck('name');
+        
+        \Log::info('Login exitoso', [
+            'user_id' => $u->id,
+            'email' => $u->email,
+            'roles' => $roles->toArray(),
+        ]);
+        
+        return response()->json([
             'token' => $token,
             'user'  => $u,
-            'roles' => $u->roles()->pluck('name'),
-        ];
+            'roles' => $roles,
+        ]);
     }
 
     /* GET /api/auth/me */
