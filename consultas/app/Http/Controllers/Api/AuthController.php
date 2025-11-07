@@ -15,9 +15,47 @@ use App\Models\Paciente;
 
 class AuthController extends Controller
 {
+    private const GENDER_ALIASES = [
+        'm' => 'M',
+        'f' => 'F',
+        'x' => 'X',
+        'M' => 'M',
+        'F' => 'F',
+        'X' => 'X',
+        'masculino' => 'M',
+        'femenino' => 'F',
+        'no-binario' => 'X',
+        'no binario' => 'X',
+        'no_binario' => 'X',
+        'prefiero-no-decirlo' => null,
+        'prefiero no decirlo' => null,
+        'prefiero_no_decirlo' => null,
+    ];
     /* POST /api/auth/register/paciente */
     public function registerPaciente(Request $r)
     {
+        if ($r->has('birthdate')) {
+            $rawBirthdate = $r->input('birthdate');
+            $trimmedBirthdate = is_string($rawBirthdate) ? trim($rawBirthdate) : $rawBirthdate;
+
+            if ($trimmedBirthdate === '' || $trimmedBirthdate === null) {
+                $r->merge(['birthdate' => null]);
+            } else {
+                $normalizedBirthdate = $this->normalizeBirthdate($rawBirthdate);
+                if ($normalizedBirthdate !== null) {
+                    $r->merge(['birthdate' => $normalizedBirthdate]);
+                }
+            }
+        }
+        $genderOptions = array_keys(self::GENDER_ALIASES);
+        $genderVariants = [];
+        foreach ($genderOptions as $value) {
+            $lower = strtolower($value);
+            $genderVariants[] = $lower;
+            $genderVariants[] = strtoupper($lower);
+            $genderVariants[] = ucfirst($lower);
+        }
+        $genderOptions = array_values(array_unique(array_merge($genderOptions, $genderVariants)));
         $data = $r->validate([
             'full_name' => ['required_without:name','string','max:120'],
             'name'      => ['required_without:full_name','string','max:120'],
@@ -30,9 +68,12 @@ class AuthController extends Controller
             'doc_tipo'   => ['nullable','string','max:10'],
             'doc_numero' => ['nullable','string','max:32'],
             'birthdate'  => ['nullable','date'],
-            'gender'     => ['nullable','string','max:10'],
+            'gender'     => ['nullable','string','max:32', Rule::in($genderOptions)],
         ]);
 
+        if (array_key_exists('gender', $data)) {
+            $data['gender'] = $this->normalizeGender($data['gender']);
+        }
         $name = $data['full_name'] ?? $data['name'];
         $phone = $data['phone'] ?? null;
         $requestedRole = $data['role'] ?? 'paciente';
@@ -190,6 +231,69 @@ class AuthController extends Controller
     {
         $r->user()->currentAccessToken()->delete();
         return response()->noContent();
+    }
+    private function normalizeGender(?string $gender): ?string
+    {
+        if ($gender === null) {
+            return null;
+        }
+
+        $trimmed = trim($gender);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        if (array_key_exists($trimmed, self::GENDER_ALIASES)) {
+            return self::GENDER_ALIASES[$trimmed];
+        }
+
+        $lower = strtolower($trimmed);
+        if (array_key_exists($lower, self::GENDER_ALIASES)) {
+            return self::GENDER_ALIASES[$lower];
+        }
+
+        return null;
+    }
+
+    private function normalizeBirthdate($birthdate): ?string
+    {
+        if ($birthdate === null) {
+            return null;
+        }
+
+        if (!is_string($birthdate)) {
+            return null;
+        }
+
+        $trimmed = trim($birthdate);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $formats = [
+            'Y-m-d', 'Y/m/d',
+            'd/m/Y', 'd-m-Y', 'd.m.Y',
+            'j/n/Y', 'j-n-Y', 'j.n.Y',
+        ];
+
+        foreach ($formats as $format) {
+            $dt = \DateTime::createFromFormat($format, $trimmed);
+
+            if (!($dt instanceof \DateTime)) {
+                continue;
+            }
+
+            $errors = \DateTime::getLastErrors();
+            $hasIssues = is_array($errors)
+                ? (($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0)
+                : false;
+
+            if (!$hasIssues) {
+                return $dt->format('Y-m-d');
+            }
+        }
+
+        return null;
     }
 }
 
