@@ -20,6 +20,7 @@ import PacientePerfil from '../ui/pages/PacientePerfil.vue'
 import PacienteMisCitas from '../ui/pages/PacienteMisCitas.vue'
 import PacienteNotificaciones from '../ui/pages/PacienteNotificaciones.vue'
 import MedicoNotificaciones from '../ui/pages/MedicoNotificaciones.vue'
+import MedicoBuscar from '../ui/pages/MedicoBuscar.vue'
 // --- rutas (mismas que enviaste) ---
 const routes = [
   {
@@ -78,6 +79,12 @@ const routes = [
     path: '/medico/notificaciones',
     name: 'medico.notificaciones',
     component: MedicoNotificaciones,
+    meta: { requiresAuth: true, role: 'medico' }
+  },
+  {
+    path: '/medico/buscar',
+    name: 'medico.buscar',
+    component: MedicoBuscar,
     meta: { requiresAuth: true, role: 'medico' }
   },
   {

@@ -8,8 +8,16 @@
         <span class="mr-word">MediReserva</span>
       </div>
 
-      <!-- Buscador -->
-      <BuscarPacientesCitas />
+      <!-- Botón de búsqueda -->
+      <button 
+        type="button" 
+        class="mr-search-btn"
+        @click="$router.push({ name: 'medico.buscar' })"
+        title="Buscar pacientes, citas, médicos..."
+      >
+        <span class="search-icon">🔍</span>
+        <span class="search-text">Buscar</span>
+      </button>
 
       <!-- Usuario -->
       <button type="button" class="mr-userpill" @click.stop="menuOpen = !menuOpen">
@@ -37,8 +45,8 @@
     <div class="container">
       <!-- TOP SECTION: Welcome + Date Selector -->
       <div class="top-section">
-        <!-- WELCOME -->
-        <div class="welcome-section">
+      <!-- WELCOME -->
+      <div class="welcome-section">
           <div class="welcome-header">
             <div class="welcome-title-group">
               <h1>¡Hola, {{ doctorName }}! <span class="wave-emoji">👋</span></h1>
@@ -52,8 +60,8 @@
                   <span>Verificación: {{ formatVerifStatus(verifStatus) }}</span>
                 </span>
               </div>
-            </div>
-            <div class="welcome-actions">
+        </div>
+        <div class="welcome-actions">
               <button class="btn-primary-action" @click="goHorarios">
                 <span class="btn-icon">⚙️</span>
                 <span>Configurar Horarios</span>
@@ -62,10 +70,10 @@
                 <span v-if="loading" class="btn-spinner">⏳</span>
                 <span v-else class="btn-icon">⟳</span>
                 <span>{{ loading ? 'Actualizando…' : 'Refrescar' }}</span>
-              </button>
+          </button>
             </div>
-          </div>
         </div>
+      </div>
 
         <!-- DATE SELECTOR -->
         <div class="date-selector-section">
@@ -91,7 +99,7 @@
       <div class="quick-stats">
         <div class="stat-card stat-total">
           <div class="stat-header">
-            <div class="stat-icon">📅</div>
+          <div class="stat-icon">📅</div>
             <div class="stat-trend" v-if="totalHoy > 0">↑</div>
           </div>
           <div class="stat-value">{{ totalHoy }}</div>
@@ -99,7 +107,7 @@
         </div>
         <div class="stat-card stat-confirmed">
           <div class="stat-header">
-            <div class="stat-icon">✅</div>
+          <div class="stat-icon">✅</div>
             <div class="stat-trend" v-if="confirmadasHoy > 0">✓</div>
           </div>
           <div class="stat-value">{{ confirmadasHoy }}</div>
@@ -107,7 +115,7 @@
         </div>
         <div class="stat-card stat-pending">
           <div class="stat-header">
-            <div class="stat-icon">⏳</div>
+          <div class="stat-icon">⏳</div>
             <div class="stat-trend" v-if="pendientesHoy > 0">!</div>
           </div>
           <div class="stat-value">{{ pendientesHoy }}</div>
@@ -115,7 +123,7 @@
         </div>
         <div class="stat-card stat-completed">
           <div class="stat-header">
-            <div class="stat-icon">🧾</div>
+          <div class="stat-icon">🧾</div>
             <div class="stat-trend" v-if="completadasHoy > 0">✓</div>
           </div>
           <div class="stat-value">{{ completadasHoy }}</div>
@@ -205,31 +213,31 @@
         </div>
 
         <div v-else class="appointments-grid">
-          <div
-            v-for="c in agendaFiltrada"
-            :key="c.id"
-            class="appointment-card"
+        <div
+          v-for="c in agendaFiltrada"
+          :key="c.id"
+          class="appointment-card"
             :class="`appointment-${c.estado}`"
-          >
-            <div class="appointment-header">
+        >
+          <div class="appointment-header">
               <div class="patient-info">
                 <div class="patient-avatar" :class="statusPill(c.estado)">
                   <span class="avatar-icon">👤</span>
-                </div>
+              </div>
                 <div class="patient-details">
                   <h3 class="patient-name">{{ c.paciente }}</h3>
                   <div class="appointment-meta">
                     <span class="appointment-id">Cita #{{ c.id }}</span>
                     <span class="meta-separator">•</span>
                     <span class="appointment-time-meta">{{ c.hora }}</span>
-                  </div>
+            </div>
                 </div>
               </div>
               <div class="appointment-status" :class="statusPill(c.estado)">
                 <span class="status-dot"></span>
                 <span class="status-text">{{ formatEstado(c.estado) }}</span>
               </div>
-            </div>
+          </div>
 
             <div class="appointment-body">
               <div class="appointment-detail-row">
@@ -248,47 +256,47 @@
                   </div>
                 </div>
               </div>
-            </div>
+          </div>
 
-            <div class="appointment-actions">
-              <button
-                v-if="c.estado==='pendiente'"
+          <div class="appointment-actions">
+            <button
+              v-if="c.estado==='pendiente'"
                 class="btn-action btn-confirm"
-                @click="accion(c.id,'confirmar')"
-                :disabled="busyId===c.id"
+              @click="accion(c.id,'confirmar')"
+              :disabled="busyId===c.id"
               >
                 <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
                 <span v-else class="btn-icon">✓</span>
                 <span>Confirmar</span>
               </button>
 
-              <button
-                v-if="c.estado==='pendiente'"
-                class="btn-action btn-cancel"
-                @click="accion(c.id,'cancelar')"
-                :disabled="busyId===c.id"
+            <button
+              v-if="c.estado==='pendiente'"
+              class="btn-action btn-cancel"
+              @click="accion(c.id,'cancelar')"
+              :disabled="busyId===c.id"
               >
                 <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
                 <span v-else class="btn-icon">✕</span>
                 <span>Cancelar</span>
               </button>
 
-              <button
-                v-if="c.estado==='confirmada'"
+            <button
+              v-if="c.estado==='confirmada'"
                 class="btn-action btn-complete"
-                @click="accion(c.id,'completar')"
-                :disabled="busyId===c.id"
+              @click="accion(c.id,'completar')"
+              :disabled="busyId===c.id"
               >
                 <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
                 <span v-else class="btn-icon">✓</span>
                 <span>Completar</span>
               </button>
 
-              <button
-                v-if="c.estado==='confirmada'"
-                class="btn-action btn-cancel"
-                @click="accion(c.id,'cancelar')"
-                :disabled="busyId===c.id"
+            <button
+              v-if="c.estado==='confirmada'"
+              class="btn-action btn-cancel"
+              @click="accion(c.id,'cancelar')"
+              :disabled="busyId===c.id"
               >
                 <span v-if="busyId===c.id" class="btn-spinner">⏳</span>
                 <span v-else class="btn-icon">✕</span>
@@ -306,7 +314,6 @@
 import axios from 'axios'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import BuscarPacientesCitas from '@/ui/components/BuscarPacientesCitas.vue'
 
 const router = useRouter()
 const menuOpen = ref(false)
@@ -485,11 +492,38 @@ onMounted(async ()=>{
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-/* Buscador - ahora usa el componente BuscarPacientesCitas */
-.mr-dh > :nth-child(2) {
-  width: 100%;
-  max-width: 600px;
-  justify-self: center;
+/* Botón de búsqueda */
+.mr-search-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: #eaf6ff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+  max-width: 200px;
+  justify-content: center;
+}
+
+.mr-search-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(127, 59, 243, 0.5);
+  box-shadow: 0 0 0 3px rgba(127, 59, 243, 0.1);
+  transform: translateY(-1px);
+}
+
+.search-icon {
+  font-size: 16px;
+}
+
+.search-text {
+  font-weight: 600;
 }
 .mr-userpill{
   display:flex; align-items:center; gap:12px;
