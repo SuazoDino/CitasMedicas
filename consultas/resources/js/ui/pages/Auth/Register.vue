@@ -47,13 +47,22 @@
         <div class="auth-field">
           <input
             id="reg-full-name"
+<<<<<<< Updated upstream
             :value="getFieldValue(fullName)"
             @input="fullName.setValue($event.target.value)"
+=======
+              :value="String(fullName.value || '')"
+              @input="fullName.setValue($event.target.value)"
+>>>>>>> Stashed changes
             @blur="fullName.handleBlur"
             type="text"
             autocomplete="name"
             class="auth-input"
+<<<<<<< Updated upstream
             placeholder="Nombre completo"
+=======
+              placeholder="Nombre completo"
+>>>>>>> Stashed changes
           />
           <p v-if="fullName.errorMessage" class="auth-error">{{ fullName.errorMessage }}</p>
         </div>
@@ -61,13 +70,22 @@
         <div class="auth-field">
           <input
             id="reg-email"
+<<<<<<< Updated upstream
             :value="getFieldValue(email)"
             @input="email.setValue($event.target.value)"
+=======
+              :value="String(email.value || '')"
+              @input="email.setValue($event.target.value)"
+>>>>>>> Stashed changes
             @blur="email.handleBlur"
             type="email"
             autocomplete="email"
             class="auth-input"
+<<<<<<< Updated upstream
             placeholder="Correo electrónico"
+=======
+              placeholder="Correo electrónico"
+>>>>>>> Stashed changes
           />
           <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
           </div>
@@ -78,13 +96,21 @@
         <div class="auth-field">
           <input
             id="reg-phone"
+<<<<<<< Updated upstream
             :value="getFieldValue(phone)"
+=======
+            :value="String(phone.value || '')"
+>>>>>>> Stashed changes
             @input="phone.setValue($event.target.value)"
             @blur="phone.handleBlur"
             type="tel"
             autocomplete="tel"
             class="auth-input"
+<<<<<<< Updated upstream
             placeholder="Teléfono de contacto (opcional)"
+=======
+              placeholder="Teléfono de contacto (opcional)"
+>>>>>>> Stashed changes
           />
           <p v-if="phone.errorMessage" class="auth-error">{{ phone.errorMessage }}</p>
         </div>
@@ -92,13 +118,21 @@
         <div class="auth-field">
           <input
             id="reg-password"
+<<<<<<< Updated upstream
             :value="getFieldValue(password)"
+=======
+            :value="String(password.value || '')"
+>>>>>>> Stashed changes
             @input="password.setValue($event.target.value)"
             @blur="password.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="auth-input"
+<<<<<<< Updated upstream
             placeholder="Crea una contraseña (mínimo 6 caracteres)"
+=======
+              placeholder="Crea una contraseña (mínimo 6 caracteres)"
+>>>>>>> Stashed changes
           />
           <p v-if="password.errorMessage" class="auth-error">{{ password.errorMessage }}</p>
         </div>
@@ -106,13 +140,21 @@
         <div class="auth-field">
           <input
             id="reg-password-confirm"
+<<<<<<< Updated upstream
             :value="getFieldValue(passwordConfirmation)"
+=======
+            :value="String(passwordConfirmation.value || '')"
+>>>>>>> Stashed changes
             @input="passwordConfirmation.setValue($event.target.value)"
             @blur="passwordConfirmation.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="auth-input"
+<<<<<<< Updated upstream
             placeholder="Repite la contraseña"
+=======
+              placeholder="Repite la contraseña"
+>>>>>>> Stashed changes
           />
           <p v-if="passwordConfirmation.errorMessage" class="auth-error">{{ passwordConfirmation.errorMessage }}</p>
             <label class="auth-checkbox-label">
@@ -134,7 +176,11 @@
               <label class="auth-label">Tipo de documento de identidad *</label>
               <select
               id="reg-id-doc-tipo"
+<<<<<<< Updated upstream
               :value="getFieldValue(idDocTipo)"
+=======
+              :value="String(idDocTipo.value || '')"
+>>>>>>> Stashed changes
               @change="idDocTipo.setValue($event.target.value)"
               @blur="idDocTipo.handleBlur"
               class="auth-input"
@@ -151,7 +197,11 @@
               <label class="auth-label">Número de documento *</label>
             <input
               id="reg-id-doc-numero"
+<<<<<<< Updated upstream
               :value="getFieldValue(idDocNumero)"
+=======
+              :value="String(idDocNumero.value || '')"
+>>>>>>> Stashed changes
               @input="idDocNumero.setValue($event.target.value)"
               @blur="idDocNumero.handleBlur"
               type="text"
@@ -166,7 +216,11 @@
               <label class="auth-label">Tipo de licencia profesional *</label>
               <select
               id="reg-lic-tipo"
+<<<<<<< Updated upstream
               :value="getFieldValue(licTipo)"
+=======
+              :value="String(licTipo.value || '')"
+>>>>>>> Stashed changes
               @change="licTipo.setValue($event.target.value)"
               @blur="licTipo.handleBlur"
               class="auth-input"
@@ -184,7 +238,11 @@
               <label class="auth-label">Número de licencia *</label>
             <input
               id="reg-lic-numero"
+<<<<<<< Updated upstream
               :value="getFieldValue(licNumero)"
+=======
+              :value="String(licNumero.value || '')"
+>>>>>>> Stashed changes
               @input="licNumero.setValue($event.target.value)"
               @blur="licNumero.handleBlur"
               type="text"
@@ -199,7 +257,11 @@
               <label class="auth-label">País de expedición *</label>
             <input
               id="reg-lic-pais"
+<<<<<<< Updated upstream
               :value="getFieldValue(licPais)"
+=======
+              :value="String(licPais.value || '')"
+>>>>>>> Stashed changes
               @input="handlePaisInput"
               @blur="licPais.handleBlur"
               type="text"
@@ -217,7 +279,11 @@
           <div class="auth-field">
             <input
               id="reg-doc-tipo"
+<<<<<<< Updated upstream
               :value="getFieldValue(docTipo)"
+=======
+              :value="String(docTipo.value || '')"
+>>>>>>> Stashed changes
               @input="docTipo.setValue($event.target.value)"
               @blur="docTipo.handleBlur"
               type="text"
@@ -228,7 +294,11 @@
           <div class="auth-field">
             <input
               id="reg-doc-numero"
+<<<<<<< Updated upstream
               :value="getFieldValue(docNumero)"
+=======
+              :value="String(docNumero.value || '')"
+>>>>>>> Stashed changes
               @input="docNumero.setValue($event.target.value)"
               @blur="docNumero.handleBlur"
               type="text"
@@ -239,7 +309,11 @@
           <div class="auth-field">
             <input
               id="reg-birthdate"
+<<<<<<< Updated upstream
               :value="getFieldValue(birthdate)"
+=======
+              :value="String(birthdate.value || '')"
+>>>>>>> Stashed changes
               @input="birthdate.setValue($event.target.value)"
               @blur="birthdate.handleBlur"
               type="date"
@@ -247,7 +321,11 @@
             />
           </div>
           <div class="auth-field">
+<<<<<<< Updated upstream
               <select id="reg-gender" :value="getFieldValue(gender)" @change="gender.setValue($event.target.value)" class="auth-input">
+=======
+              <select id="reg-gender" :value="String(gender.value || '')" @change="gender.setValue($event.target.value)" class="auth-input">
+>>>>>>> Stashed changes
                 <option value="">Género (opcional)</option>
               <option value="femenino">Femenino</option>
               <option value="masculino">Masculino</option>
@@ -292,7 +370,11 @@
         <!-- Footer -->
         <p class="auth-footer">
           ¿Ya tienes cuenta?
+<<<<<<< Updated upstream
           <RouterLink class="auth-link" :to="{ name: 'login', query: { email: getFieldValue(email) } }">
+=======
+          <RouterLink class="auth-link" :to="{ name: 'login', query: { email: String(email.value || '') } }">
+>>>>>>> Stashed changes
             Iniciar sesión
           </RouterLink>
         </p>
@@ -302,7 +384,11 @@
 </template>
 
 <script setup>
+<<<<<<< Updated upstream
 import { computed, ref, watch} from 'vue'
+=======
+import { computed, ref, watch, nextTick } from 'vue'
+>>>>>>> Stashed changes
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField, defineRule } from '@vee-validate/core'
 import { required, email as emailRule, min, max, confirmed, one_of as oneOf } from '@vee-validate/rules'

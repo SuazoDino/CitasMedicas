@@ -40,7 +40,11 @@
           <input
             id="login-email"
             ref="emailInput"
+<<<<<<< Updated upstream
             :value="getFieldValue(email)"
+=======
+            :value="String(email.value || '')"
+>>>>>>> Stashed changes
             @input="email.setValue($event.target.value)"
             @blur="email.handleBlur"
             type="email"
@@ -54,7 +58,11 @@
         <div v-if="!stepMode || currentStep === 1" class="login-field">
           <input
             id="login-password"
+<<<<<<< Updated upstream
             :value="getFieldValue(password)"
+=======
+            :value="String(password.value || '')"
+>>>>>>> Stashed changes
             @input="password.setValue($event.target.value)"
             @blur="password.handleBlur"
             :type="showPassword ? 'text' : 'password'"
@@ -83,14 +91,22 @@
         </button>
 
         <!-- Link olvidé contraseña -->
+<<<<<<< Updated upstream
         <RouterLink class="login-forgot" :to="{ name: 'forgot-password', query: { email: getFieldValue(email) } }">
+=======
+        <RouterLink class="login-forgot" :to="{ name: 'forgot-password', query: { email: String(email.value || '') } }">
+>>>>>>> Stashed changes
           He olvidado mi contraseña
         </RouterLink>
 
         <!-- Footer con registro -->
         <p class="login-footer">
           ¿Todavía sin cuenta?
+<<<<<<< Updated upstream
           <RouterLink class="login-link" :to="{ name: 'register.paciente', query: { email: getFieldValue(email) } }">
+=======
+          <RouterLink class="login-link" :to="{ name: 'register.paciente', query: { email: String(email.value || '') } }">
+>>>>>>> Stashed changes
             Quiero registrarme
           </RouterLink>
         </p>
