@@ -47,13 +47,13 @@
         <div class="auth-field">
           <input
             id="reg-full-name"
-              :value="String(fullName.value || '')"
-              @input="fullName.setValue($event.target.value)"
+            :value="getFieldValue(fullName)"
+            @input="fullName.setValue($event.target.value)"
             @blur="fullName.handleBlur"
             type="text"
             autocomplete="name"
             class="auth-input"
-              placeholder="Nombre completo"
+            placeholder="Nombre completo"
           />
           <p v-if="fullName.errorMessage" class="auth-error">{{ fullName.errorMessage }}</p>
         </div>
@@ -61,13 +61,13 @@
         <div class="auth-field">
           <input
             id="reg-email"
-              :value="String(email.value || '')"
-              @input="email.setValue($event.target.value)"
+            :value="getFieldValue(email)"
+            @input="email.setValue($event.target.value)"
             @blur="email.handleBlur"
             type="email"
             autocomplete="email"
             class="auth-input"
-              placeholder="Correo electrónico"
+            placeholder="Correo electrónico"
           />
           <p v-if="email.errorMessage" class="auth-error">{{ email.errorMessage }}</p>
           </div>
@@ -78,13 +78,13 @@
         <div class="auth-field">
           <input
             id="reg-phone"
-            :value="String(phone.value || '')"
+            :value="getFieldValue(phone)"
             @input="phone.setValue($event.target.value)"
             @blur="phone.handleBlur"
             type="tel"
             autocomplete="tel"
             class="auth-input"
-              placeholder="Teléfono de contacto (opcional)"
+            placeholder="Teléfono de contacto (opcional)"
           />
           <p v-if="phone.errorMessage" class="auth-error">{{ phone.errorMessage }}</p>
         </div>
@@ -92,13 +92,13 @@
         <div class="auth-field">
           <input
             id="reg-password"
-            :value="String(password.value || '')"
+            :value="getFieldValue(password)"
             @input="password.setValue($event.target.value)"
             @blur="password.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="auth-input"
-              placeholder="Crea una contraseña (mínimo 6 caracteres)"
+            placeholder="Crea una contraseña (mínimo 6 caracteres)"
           />
           <p v-if="password.errorMessage" class="auth-error">{{ password.errorMessage }}</p>
         </div>
@@ -106,13 +106,13 @@
         <div class="auth-field">
           <input
             id="reg-password-confirm"
-            :value="String(passwordConfirmation.value || '')"
+            :value="getFieldValue(passwordConfirmation)"
             @input="passwordConfirmation.setValue($event.target.value)"
             @blur="passwordConfirmation.handleBlur"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="auth-input"
-              placeholder="Repite la contraseña"
+            placeholder="Repite la contraseña"
           />
           <p v-if="passwordConfirmation.errorMessage" class="auth-error">{{ passwordConfirmation.errorMessage }}</p>
             <label class="auth-checkbox-label">
@@ -134,7 +134,7 @@
               <label class="auth-label">Tipo de documento de identidad *</label>
               <select
               id="reg-id-doc-tipo"
-              :value="String(idDocTipo.value || '')"
+              :value="getFieldValue(idDocTipo)"
               @change="idDocTipo.setValue($event.target.value)"
               @blur="idDocTipo.handleBlur"
               class="auth-input"
@@ -151,7 +151,7 @@
               <label class="auth-label">Número de documento *</label>
             <input
               id="reg-id-doc-numero"
-              :value="String(idDocNumero.value || '')"
+              :value="getFieldValue(idDocNumero)"
               @input="idDocNumero.setValue($event.target.value)"
               @blur="idDocNumero.handleBlur"
               type="text"
@@ -166,7 +166,7 @@
               <label class="auth-label">Tipo de licencia profesional *</label>
               <select
               id="reg-lic-tipo"
-              :value="String(licTipo.value || '')"
+              :value="getFieldValue(licTipo)"
               @change="licTipo.setValue($event.target.value)"
               @blur="licTipo.handleBlur"
               class="auth-input"
@@ -184,7 +184,7 @@
               <label class="auth-label">Número de licencia *</label>
             <input
               id="reg-lic-numero"
-              :value="String(licNumero.value || '')"
+              :value="getFieldValue(licNumero)"
               @input="licNumero.setValue($event.target.value)"
               @blur="licNumero.handleBlur"
               type="text"
@@ -199,7 +199,7 @@
               <label class="auth-label">País de expedición *</label>
             <input
               id="reg-lic-pais"
-              :value="String(licPais.value || '')"
+              :value="getFieldValue(licPais)"
               @input="handlePaisInput"
               @blur="licPais.handleBlur"
               type="text"
@@ -217,7 +217,7 @@
           <div class="auth-field">
             <input
               id="reg-doc-tipo"
-              :value="String(docTipo.value || '')"
+              :value="getFieldValue(docTipo)"
               @input="docTipo.setValue($event.target.value)"
               @blur="docTipo.handleBlur"
               type="text"
@@ -228,7 +228,7 @@
           <div class="auth-field">
             <input
               id="reg-doc-numero"
-              :value="String(docNumero.value || '')"
+              :value="getFieldValue(docNumero)"
               @input="docNumero.setValue($event.target.value)"
               @blur="docNumero.handleBlur"
               type="text"
@@ -239,7 +239,7 @@
           <div class="auth-field">
             <input
               id="reg-birthdate"
-              :value="String(birthdate.value || '')"
+              :value="getFieldValue(birthdate)"
               @input="birthdate.setValue($event.target.value)"
               @blur="birthdate.handleBlur"
               type="date"
@@ -247,7 +247,7 @@
             />
           </div>
           <div class="auth-field">
-              <select id="reg-gender" :value="String(gender.value || '')" @change="gender.setValue($event.target.value)" class="auth-input">
+              <select id="reg-gender" :value="getFieldValue(gender)" @change="gender.setValue($event.target.value)" class="auth-input">
                 <option value="">Género (opcional)</option>
               <option value="femenino">Femenino</option>
               <option value="masculino">Masculino</option>
@@ -292,7 +292,7 @@
         <!-- Footer -->
         <p class="auth-footer">
           ¿Ya tienes cuenta?
-          <RouterLink class="auth-link" :to="{ name: 'login', query: { email: String(email.value || '') } }">
+          <RouterLink class="auth-link" :to="{ name: 'login', query: { email: getFieldValue(email) } }">
             Iniciar sesión
           </RouterLink>
         </p>
@@ -302,12 +302,13 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField, defineRule } from '@vee-validate/core'
 import { required, email as emailRule, min, max, confirmed, one_of as oneOf } from '@vee-validate/rules'
 import api from '../../../auth/api'
 import { auth } from '../../../auth/store'
+import { getFieldValue } from './getFieldValue'
 
 const props = defineProps({
   defaultRole: {
@@ -519,6 +520,12 @@ async function validateStep(index) {
   return results.every(Boolean)
 }
 
+const normalizeString = (value) => (typeof value === 'string' ? value.trim() : '')
+const emptyToNull = (value) => {
+  const normalized = normalizeString(value)
+  return normalized === '' ? null : normalized
+}
+
 const onSubmit = handleSubmit(async (formValues, helpers) => {
   backendIssue.value = null
 
@@ -532,30 +539,30 @@ const onSubmit = handleSubmit(async (formValues, helpers) => {
 
   try {
     const payload = {
-      full_name: formValues.full_name,
-      email: formValues.email,
-      phone: formValues.phone || null,
+      full_name: normalizeString(formValues.full_name),
+      email: normalizeString(formValues.email),
+      phone: emptyToNull(formValues.phone),
       password: formValues.password,
       password_confirmation: formValues.password_confirmation,
-      role: formValues.role,
+      role: normalizeString(formValues.role),
     }
 
     let endpoint = '/auth/register/paciente'
     if (formValues.role === 'medico') {
       endpoint = '/auth/register/medico'
       Object.assign(payload, {
-        id_doc_tipo: formValues.id_doc_tipo,
-        id_doc_numero: formValues.id_doc_numero,
-        lic_tipo: formValues.lic_tipo,
-        lic_numero: formValues.lic_numero,
-        lic_pais: formValues.lic_pais,
+        id_doc_tipo: normalizeString(formValues.id_doc_tipo),
+        id_doc_numero: normalizeString(formValues.id_doc_numero),
+        lic_tipo: normalizeString(formValues.lic_tipo),
+        lic_numero: normalizeString(formValues.lic_numero),
+        lic_pais: normalizeString(formValues.lic_pais).toUpperCase(),
       })
     } else {
       Object.assign(payload, {
-        doc_tipo: formValues.doc_tipo || null,
-        doc_numero: formValues.doc_numero || null,
-        birthdate: formValues.birthdate || null,
-        gender: formValues.gender || null,
+        doc_tipo: emptyToNull(formValues.doc_tipo),
+        doc_numero: emptyToNull(formValues.doc_numero),
+        birthdate: emptyToNull(formValues.birthdate),
+        gender: emptyToNull(formValues.gender),
       })
     }
 
@@ -564,11 +571,12 @@ const onSubmit = handleSubmit(async (formValues, helpers) => {
     if (!api.defaults.headers.common) api.defaults.headers.common = {}
     api.defaults.headers.common.Authorization = `Bearer ${data.token}`
 
-    auth.token = data.token
-    auth.roles = Array.isArray(data.roles) ? data.roles : []
-    auth.name = data?.user?.name ?? ''
-
-    localStorage.setItem('token', data.token)
+    auth.persistSession({
+      token: data.token,
+      roles: Array.isArray(data.roles) ? data.roles : [],
+      name: data?.user?.name ?? '',
+      remember: true,
+    })
 
     if (auth.roles.includes('medico')) {
       await router.replace({ name: 'medico.home' })

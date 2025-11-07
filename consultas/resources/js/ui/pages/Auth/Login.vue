@@ -40,7 +40,7 @@
           <input
             id="login-email"
             ref="emailInput"
-            :value="String(email.value || '')"
+            :value="getFieldValue(email)"
             @input="email.setValue($event.target.value)"
             @blur="email.handleBlur"
             type="email"
@@ -54,7 +54,7 @@
         <div v-if="!stepMode || currentStep === 1" class="login-field">
           <input
             id="login-password"
-            :value="String(password.value || '')"
+            :value="getFieldValue(password)"
             @input="password.setValue($event.target.value)"
             @blur="password.handleBlur"
             :type="showPassword ? 'text' : 'password'"
@@ -83,14 +83,14 @@
         </button>
 
         <!-- Link olvidé contraseña -->
-        <RouterLink class="login-forgot" :to="{ name: 'forgot-password', query: { email: String(email.value || '') } }">
+        <RouterLink class="login-forgot" :to="{ name: 'forgot-password', query: { email: getFieldValue(email) } }">
           He olvidado mi contraseña
         </RouterLink>
 
         <!-- Footer con registro -->
         <p class="login-footer">
           ¿Todavía sin cuenta?
-          <RouterLink class="login-link" :to="{ name: 'register.paciente', query: { email: String(email.value || '') } }">
+          <RouterLink class="login-link" :to="{ name: 'register.paciente', query: { email: getFieldValue(email) } }">
             Quiero registrarme
           </RouterLink>
         </p>
@@ -113,12 +113,13 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm, useField, defineRule } from '@vee-validate/core'
 import { required, email as emailRule, min } from '@vee-validate/rules'
 import api from '../../../auth/api'
 import { auth } from '../../../auth/store'
+import { getFieldValue } from './getFieldValue'
 
 defineRule('required', required)
 defineRule('email', emailRule)
@@ -145,6 +146,8 @@ const { handleSubmit, isSubmitting, setErrors } = useForm({
 
 const email = useField('email', 'required|email')
 const password = useField('password', 'required|min:6')
+
+
 
 const emailInput = ref(null)
 
@@ -182,29 +185,33 @@ const nextStep = async () => {
   return true
 }
 
+const normalizeString = (value) => (typeof value === 'string' ? value.trim() : '')
+
 const onSubmit = handleSubmit(async (values, { setErrors: assignErrors }) => {
   backendIssue.value = null
   const canContinue = await nextStep()
   if (!canContinue) return
 
   try {
-    const { data } = await api.post('/auth/login', {
-      email: values.email,
+    const rememberChoice = remember.value === true
+    const payload = {
+      email: normalizeString(values.email),
       password: values.password,
-      remember: remember.value,
+      remember: rememberChoice,
+    }
+
+    const { data } = await api.post('/auth/login', {
+      ...payload,
     })
 
     if (!api.defaults.headers.common) api.defaults.headers.common = {}
     api.defaults.headers.common.Authorization = `Bearer ${data.token}`
-    auth.token = data.token
-    auth.roles = Array.isArray(data.roles) ? data.roles : []
-    auth.name = data?.user?.name ?? ''
-
-    if (remember.value) {
-      localStorage.setItem('token', data.token)
-    } else {
-      sessionStorage.setItem('token', data.token)
-    }
+    auth.persistSession({
+      token: data.token,
+      roles: Array.isArray(data.roles) ? data.roles : [],
+      name: data?.user?.name ?? '',
+      remember: rememberChoice,
+    })
 
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
     if (redirect) {
