@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\Medico\EspecialidadesController as MedicoEspecialid
 use App\Http\Controllers\Api\Paciente\PerfilController as PacientePerfilController;
 use App\Http\Controllers\Api\Paciente\RatingController as PacienteRatingController;
 use App\Http\Controllers\Api\Medico\PacienteController as MedicoPacienteController;
+use App\Http\Controllers\Api\Medico\HistorialMedicoController as MedicoHistorialController;
+use App\Http\Controllers\Api\Paciente\HistorialMedicoController as PacienteHistorialController;
 use App\Http\Controllers\Api\PasswordResetController;
 // Público
 Route::prefix('auth')->group(function () {
@@ -53,6 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('citas/{id}/rating', [PacienteRatingController::class, 'show']);
         Route::post('citas/{id}/rating', [PacienteRatingController::class, 'store']);
         Route::put('citas/{id}/rating', [PacienteRatingController::class, 'update']);
+        Route::get('historial', [PacienteHistorialController::class, 'index']);
+        Route::get('historial/{cita}', [PacienteHistorialController::class, 'show']);
         Route::get('notificaciones/preferencias', [NotificationPreferenceController::class, 'getPaciente']);
         Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updatePaciente']);
     });
@@ -78,6 +82,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('notificaciones/preferencias', [NotificationPreferenceController::class, 'getMedico']);
         Route::match(['put', 'patch'], 'notificaciones/preferencias', [NotificationPreferenceController::class, 'updateMedico']);
         Route::get('pacientes/{id}', [MedicoPacienteController::class, 'show']);
+        Route::get('citas/{id}/historial', [MedicoHistorialController::class, 'getHistorialCita']);
+        Route::post('citas/{id}/historial', [MedicoHistorialController::class, 'updateHistorial']);
+        Route::put('citas/{id}/historial', [MedicoHistorialController::class, 'updateHistorial']);
+        Route::get('pacientes/{id}/historial', [MedicoHistorialController::class, 'getHistorialPaciente']);
     });
 });
 

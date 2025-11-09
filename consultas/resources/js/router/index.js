@@ -19,6 +19,7 @@ import MedicoPerfilPublico from '../ui/pages/MedicoPerfilPublico.vue'
 import PacientePerfil from '../ui/pages/PacientePerfil.vue'
 import PacienteMisCitas from '../ui/pages/PacienteMisCitas.vue'
 import PacienteNotificaciones from '../ui/pages/PacienteNotificaciones.vue'
+import PacienteHistorialMedico from '../ui/pages/PacienteHistorialMedico.vue'
 import MedicoNotificaciones from '../ui/pages/MedicoNotificaciones.vue'
 import MedicoBuscar from '../ui/pages/MedicoBuscar.vue'
 // --- rutas (mismas que enviaste) ---
@@ -115,6 +116,12 @@ const routes = [
         path: 'notificaciones',
         name: 'paciente.notificaciones',
         component: PacienteNotificaciones,
+        meta: { requiresAuth: true, role: 'paciente' }
+      },
+      {
+        path: 'historial-medico',
+        name: 'paciente.historial',
+        component: PacienteHistorialMedico,
         meta: { requiresAuth: true, role: 'paciente' }
       },
     ]

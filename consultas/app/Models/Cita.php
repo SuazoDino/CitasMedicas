@@ -12,13 +12,16 @@ class Cita extends Model
         'medico_id','paciente_id','especialidad_id',
         'starts_at','ends_at','estado','reminder_sent_at','notas',
         'created_by_user_id','canceled_by_user_id','cancel_reason',
-        'rating','review','rated_at'
+        'rating','review','rated_at',
+        // Historial médico
+        'sintomas','diagnostico','tratamiento','observaciones_medicas','historial_completado_at'
     ];
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at'   => 'datetime',
         'reminder_sent_at'=>'datetime',
         'rated_at' => 'datetime',
+        'historial_completado_at' => 'datetime',
         'rating' => 'integer',
     ];
 
