@@ -68,6 +68,8 @@
 
 <script>
 import AuthLayout from '../../components/AuthLayout.vue'
+import axios from '../../../axios'
+import { useAuth } from '../../../composables/useAuth'
 
 export default {
   name: 'LoginPage',
@@ -82,6 +84,7 @@ export default {
       successMsg: '',
       loading: false,
       showPassword: false,
+      fetchUser: useAuth().fetchUser,
     }
   },
   created() {
@@ -100,11 +103,41 @@ export default {
       this.successMsg = ''
       if (!this.validate()) return
       this.loading = true
-      // TODO: Conectar con backend
-      setTimeout(() => {
+      
+      try {
+        const response = await axios.post('/login', this.form);
+        const { access_token } = response.data;
+        
+        // Guardar token
+        localStorage.setItem('jwt_token', access_token);
+        
+        // Cargar información del usuario
+        const user = await this.fetchUser();
+        
+        if (user) {
+          if (user.rol_id === 1) {
+            this.$router.push('/admin/dashboard');
+          } else if (user.rol_id === 2) {
+            this.$router.push('/paciente/dashboard');
+          } else {
+            this.$router.push('/');
+          }
+        }
+      } catch (error) {
+        if (error.response) {
+          if (error.response.status === 401) {
+            this.errorMsg = 'Credenciales incorrectas.';
+          } else if (error.response.status === 403) {
+            this.errorMsg = 'Tu cuenta aún no está verificada. Revisa tu correo.';
+          } else {
+            this.errorMsg = 'Error al iniciar sesión.';
+          }
+        } else {
+          this.errorMsg = 'Problema de conexión con el servidor.';
+        }
+      } finally {
         this.loading = false
-        this.errorMsg = 'Funcionalidad de backend pendiente de implementar.'
-      }, 1200)
+      }
     },
   },
 }

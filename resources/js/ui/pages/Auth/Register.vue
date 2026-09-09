@@ -179,6 +179,7 @@
 
 <script>
 import AuthLayout from '../../components/AuthLayout.vue'
+import axios from '../../../axios'
 
 export default {
   name: 'RegisterPage',
@@ -237,11 +238,24 @@ export default {
       this.errorMsg = ''
       if (!this.validateStep()) return
       this.loading = true
-      // TODO: Conectar con backend
-      setTimeout(() => {
-        this.loading = false
+      
+      try {
+        await axios.post('/register', this.form);
         this.$router.push({ path: '/auth/login', query: { msg: 'Cuenta creada exitosamente. Revisa tu correo para confirmar tu cuenta.' } })
-      }, 1500)
+      } catch (error) {
+        if (error.response && error.response.status === 422) {
+          const apiErrors = error.response.data;
+          // Asignar errores de la API al estado de validación
+          for (let key in apiErrors) {
+            this.errors[key] = apiErrors[key][0];
+          }
+          this.errorMsg = 'Por favor, corrige los errores en el formulario.';
+        } else {
+          this.errorMsg = 'Ocurrió un error inesperado al intentar registrar tu cuenta.';
+        }
+      } finally {
+        this.loading = false
+      }
     },
   },
 }

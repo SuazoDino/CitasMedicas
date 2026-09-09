@@ -32,17 +32,6 @@
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: var(--cm-text);
-  -webkit-font-smoothing: antialiased;
-  background-color: var(--cm-bg);
-}
-
 /* ---- Page Background ---- */
 .auth-page {
   min-height: 100vh;

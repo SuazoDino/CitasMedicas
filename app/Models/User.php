@@ -9,12 +9,15 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Notifications\ResetPasswordNotificataion;
 use App\Models\NotificationPreference;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
+    protected $table = 'usuarios';
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['name','email','phone','password'];
+    protected $fillable = ['email','password','rol_id','estado'];
     protected $hidden = ['password','remember_token'];
 
     protected function casts(): array
@@ -27,7 +30,7 @@ class User extends Authenticatable
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class,'user_role','user_id','role_id');
+        return $this->belongsTo(Role::class, 'rol_id');
     }
 
     // Solo si luego vas a crear estos perfiles:
@@ -48,7 +51,30 @@ class User extends Authenticatable
 
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new ResetPasswordNotification($token));
+        // TODO: Import or fix ResetPasswordNotification if needed.
+        //$this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [
+            'rol_id' => $this->rol_id,
+        ];
     }
 }
 
