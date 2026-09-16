@@ -10,6 +10,7 @@ import VerifyEmail from '../ui/pages/Auth/VerifyEmail.vue'
 // Admin pages
 import AdminLayout from '../ui/components/AdminLayout.vue'
 import AdminDashboard from '../ui/pages/Admin/Dashboard.vue'
+import AdminUsuarios from '../ui/pages/Admin/Usuarios.vue'
 
 // API composable for auth checking
 import { useAuth } from '../composables/useAuth'
@@ -68,6 +69,12 @@ const routes = [
         name: 'admin-dashboard',
         component: AdminDashboard,
         meta: { title: 'Panel de Control — Admin' },
+      },
+      {
+        path: 'usuarios',
+        name: 'admin-usuarios',
+        component: AdminUsuarios,
+        meta: { title: 'Gestión de Usuarios — Admin' },
       }
     ]
   },

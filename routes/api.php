@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\UsuarioController;
 
 // Health-check
 Route::get('/_ping', fn () => response()->json(['ok' => true, 'ts' => now()]));
@@ -34,4 +35,5 @@ Route::middleware('auth:api')->group(function () {
 
     // Admin routes
     Route::get('/admin/dashboard', [AdminController::class, 'dashboardMetrics']);
+    Route::apiResource('/admin/usuarios', UsuarioController::class);
 });

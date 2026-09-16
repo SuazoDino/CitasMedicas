@@ -1,8 +1,16 @@
 <template>
   <div class="flex h-screen bg-gray-50 font-sans text-gray-900">
     
+    <!-- Mobile sidebar overlay -->
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-slate-900/50 z-20 md:hidden backdrop-blur-sm"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl hidden md:flex transition-all duration-300">
+    <aside 
+      :class="[
+        'w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl transition-transform duration-300 z-30 fixed inset-y-0 left-0 md:static md:translate-x-0',
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      ]"
+    >
       <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
         <span class="text-xl font-bold text-white tracking-wide">
           <span class="text-blue-500">medi</span>Reserva <span class="text-xs font-normal text-slate-500 uppercase ml-1">Admin</span>
@@ -16,7 +24,7 @@
             Dashboard
           </router-link>
           
-          <router-link to="/admin/users" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white" active-class="bg-blue-600 text-white hover:bg-blue-600">
+          <router-link to="/admin/usuarios" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white" active-class="bg-blue-600 text-white hover:bg-blue-600">
             <svg class="w-5 h-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             Usuarios
           </router-link>
@@ -41,7 +49,7 @@
       <!-- Navbar -->
       <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10">
         <div class="flex items-center">
-          <button class="md:hidden text-gray-500 hover:text-gray-700">
+          <button @click="isSidebarOpen = !isSidebarOpen" class="md:hidden text-gray-500 hover:text-gray-700">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
           </button>
           
@@ -73,6 +81,7 @@
 </template>
 
 <script>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '../../composables/useAuth';
 
@@ -81,6 +90,7 @@ export default {
   setup() {
     const router = useRouter();
     const { logout } = useAuth();
+    const isSidebarOpen = ref(false);
 
     const handleLogout = async () => {
       await logout();
@@ -88,7 +98,8 @@ export default {
     };
 
     return {
-      handleLogout
+      handleLogout,
+      isSidebarOpen
     };
   }
 }

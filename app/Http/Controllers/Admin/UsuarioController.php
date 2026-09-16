@@ -27,6 +27,25 @@ class UsuarioController extends Controller
         return response()->json($usuarios);
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|unique:usuarios,email',
+            'password' => 'required|string|min:6',
+            'rol_id' => 'required|exists:roles,id',
+            'estado' => 'sometimes|in:activo,inactivo,suspendido',
+        ]);
+
+        $usuario = User::create([
+            'email' => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'rol_id' => $request->rol_id,
+            'estado' => $request->estado ?? 'activo',
+        ]);
+
+        return response()->json(['message' => 'Usuario creado exitosamente', 'usuario' => $usuario], 201);
+    }
+
     public function show($id)
     {
         $usuario = User::with('roles')->findOrFail($id);
