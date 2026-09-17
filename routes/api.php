@@ -16,6 +16,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\UsuarioController;
+use App\Http\Controllers\Admin\CitaController;
 
 // Health-check
 Route::get('/_ping', fn () => response()->json(['ok' => true, 'ts' => now()]));
@@ -36,4 +37,7 @@ Route::middleware('auth:api')->group(function () {
     // Admin routes
     Route::get('/admin/dashboard', [AdminController::class, 'dashboardMetrics']);
     Route::apiResource('/admin/usuarios', UsuarioController::class);
+
+    Route::get('/admin/citas-opciones', [CitaController::class, 'lookups']);
+    Route::apiResource('/admin/citas', CitaController::class);
 });

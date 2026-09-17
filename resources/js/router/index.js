@@ -11,6 +11,7 @@ import VerifyEmail from '../ui/pages/Auth/VerifyEmail.vue'
 import AdminLayout from '../ui/components/AdminLayout.vue'
 import AdminDashboard from '../ui/pages/Admin/Dashboard.vue'
 import AdminUsuarios from '../ui/pages/Admin/Usuarios.vue'
+import AdminCitas from '../ui/pages/Admin/Citas.vue'
 
 // API composable for auth checking
 import { useAuth } from '../composables/useAuth'
@@ -75,6 +76,12 @@ const routes = [
         name: 'admin-usuarios',
         component: AdminUsuarios,
         meta: { title: 'Gestión de Usuarios — Admin' },
+      },
+      {
+        path: 'appointments',
+        name: 'admin-citas',
+        component: AdminCitas,
+        meta: { title: 'Gestión de Citas Médicas — Admin' },
       }
     ]
   },

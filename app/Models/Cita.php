@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Cita extends Model
 {
@@ -13,23 +14,30 @@ class Cita extends Model
     protected $table = 'citas';
 
     protected $fillable = [
+        'medico_id',
         'paciente_id',
-        'profesional_id',
-        'consultorio_id',
-        'fecha_hora_inicio',
-        'fecha_hora_fin',
+        'especialidad_id',
+        'starts_at',
+        'ends_at',
         'estado',
-        'motivo_consulta',
-        'notas_medico',
-        'motivo_cancelacion_id',
+        'motivo',
+        'notas',
+        'created_by_user_id',
+        'canceled_by_user_id',
+        'cancel_reason',
     ];
 
     protected function casts(): array
     {
         return [
-            'fecha_hora_inicio' => 'datetime',
-            'fecha_hora_fin' => 'datetime',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
         ];
+    }
+
+    public function medico(): BelongsTo
+    {
+        return $this->belongsTo(Medico::class, 'medico_id');
     }
 
     public function paciente(): BelongsTo
@@ -37,17 +45,22 @@ class Cita extends Model
         return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
-    public function profesional(): BelongsTo
+    public function especialidad(): BelongsTo
     {
-        return $this->belongsTo(ProfesionalMedico::class, 'profesional_id');
+        return $this->belongsTo(Especialidad::class, 'especialidad_id');
     }
 
-    public function consultorio(): BelongsTo
+    public function creadoPor(): BelongsTo
     {
-        return $this->belongsTo(Consultorio::class, 'consultorio_id');
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
-    public function pago()
+    public function canceladoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'canceled_by_user_id');
+    }
+
+    public function pago(): HasOne
     {
         return $this->hasOne(Pago::class, 'cita_id');
     }
