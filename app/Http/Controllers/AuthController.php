@@ -34,7 +34,7 @@ class AuthController extends Controller
             'tipo' => 'required|in:paciente', // For now, only allowing patient registration
             'nombres' => 'required|string|max:100',
             'apellidos' => 'required|string|max:100',
-            'dni' => 'required|string|max:20|unique:pacientes,dni',
+            'dni' => 'required|string|max:20|unique:pacientes,doc_numero',
             'fecha_nacimiento' => 'required|date',
             'genero' => 'nullable|in:masculino,femenino,otro',
             'telefono' => 'nullable|string|max:20',
@@ -55,14 +55,14 @@ class AuthController extends Controller
         ]);
 
         // Create the Paciente profile
+        $generoMap = ['masculino' => 'M', 'femenino' => 'F', 'otro' => 'X'];
+
         Paciente::create([
-            'usuario_id' => $user->id,
-            'nombres' => $request->nombres,
-            'apellidos' => $request->apellidos,
-            'dni' => $request->dni,
-            'fecha_nacimiento' => $request->fecha_nacimiento,
-            'genero' => $request->genero,
-            'telefono' => $request->telefono,
+            'user_id' => $user->id,
+            'doc_tipo' => 'DNI',
+            'doc_numero' => $request->dni,
+            'birthdate' => $request->fecha_nacimiento,
+            'gender' => $generoMap[$request->genero] ?? null,
         ]);
 
         // Send Email Verification Notification

@@ -13,6 +13,12 @@ import AdminDashboard from '../ui/pages/Admin/Dashboard.vue'
 import AdminUsuarios from '../ui/pages/Admin/Usuarios.vue'
 import AdminCitas from '../ui/pages/Admin/Citas.vue'
 
+// Paciente pages
+import PacienteLayout from '../ui/components/PacienteLayout.vue'
+import PacienteBuscar from '../ui/pages/Paciente/Buscar.vue'
+import PacienteMedicoPerfil from '../ui/pages/Paciente/MedicoPerfil.vue'
+import PacienteMisCitas from '../ui/pages/Paciente/MisCitas.vue'
+
 // API composable for auth checking
 import { useAuth } from '../composables/useAuth'
 
@@ -86,12 +92,35 @@ const routes = [
     ]
   },
   
-  // Paciente routes (placeholder)
+  // Paciente routes
   {
-    path: '/paciente/dashboard',
-    name: 'paciente-dashboard',
-    component: { template: '<div>Dashboard de Paciente (En construcción) <button @click="$router.push(\'/auth/login\')">Volver</button></div>' },
-    meta: { requiresAuth: true, role: 2, title: 'Panel de Paciente' }
+    path: '/paciente',
+    component: PacienteLayout,
+    meta: { requiresAuth: true, role: 2 }, // Solo pacientes (rol_id = 2)
+    children: [
+      {
+        path: '',
+        redirect: '/paciente/buscar'
+      },
+      {
+        path: 'buscar',
+        name: 'paciente-buscar',
+        component: PacienteBuscar,
+        meta: { title: 'Buscar Médicos — mediReserva' },
+      },
+      {
+        path: 'medicos/:id',
+        name: 'paciente-medico-perfil',
+        component: PacienteMedicoPerfil,
+        meta: { title: 'Perfil del Médico — mediReserva' },
+      },
+      {
+        path: 'citas',
+        name: 'paciente-citas',
+        component: PacienteMisCitas,
+        meta: { title: 'Mis Citas — mediReserva' },
+      }
+    ]
   }
 ]
 
@@ -122,7 +151,7 @@ router.beforeEach(async (to, from, next) => {
     if (to.meta.role && user.value.rol_id !== to.meta.role) {
       // Si intenta ir a una ruta que no es de su rol
       if (user.value.rol_id === 1) return next('/admin/dashboard');
-      if (user.value.rol_id === 2) return next('/paciente/dashboard');
+      if (user.value.rol_id === 2) return next('/paciente/buscar');
       return next('/auth/login');
     }
   }
@@ -133,7 +162,7 @@ router.beforeEach(async (to, from, next) => {
       if (!user.value) await fetchUser();
       if (user.value) {
         if (user.value.rol_id === 1) return next('/admin/dashboard');
-        if (user.value.rol_id === 2) return next('/paciente/dashboard');
+        if (user.value.rol_id === 2) return next('/paciente/buscar');
       }
     }
   }

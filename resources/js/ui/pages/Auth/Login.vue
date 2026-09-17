@@ -118,7 +118,7 @@ export default {
           if (user.rol_id === 1) {
             this.$router.push('/admin/dashboard');
           } else if (user.rol_id === 2) {
-            this.$router.push('/paciente/dashboard');
+            this.$router.push('/paciente/buscar');
           } else {
             this.$router.push('/');
           }

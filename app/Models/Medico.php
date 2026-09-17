@@ -55,4 +55,14 @@ class Medico extends Model
     {
         return $this->hasMany(Cita::class, 'medico_id');
     }
+
+    public function horarios(): HasMany
+    {
+        return $this->hasMany(MedicoHorario::class, 'medico_id');
+    }
+
+    public function resenas(): HasMany
+    {
+        return $this->hasMany(Resena::class, 'profesional_id');
+    }
 }

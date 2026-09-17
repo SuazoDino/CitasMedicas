@@ -43,6 +43,10 @@ class UsuarioController extends Controller
             'estado' => $request->estado ?? 'activo',
         ]);
 
+        // Un usuario creado por el admin ya está avalado por él: no necesita
+        // confirmar su correo para poder iniciar sesión.
+        $usuario->markEmailAsVerified();
+
         return response()->json(['message' => 'Usuario creado exitosamente', 'usuario' => $usuario], 201);
     }
 
